@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lectura Rápida</title>
-    <!-- Se usan enlaces absolutos para las bibliotecas de JavaScript para garantizar que funcionen en cualquier entorno de alojamiento web, como GitHub Pages. -->
+    <!-- We use absolute links for JavaScript libraries to ensure they work in any web hosting environment, such as GitHub Pages. -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
@@ -241,6 +241,13 @@
                     <div id="multiple-choice-questions" class="text-sm space-y-2">
                         <!-- Multiple choice questions will be inserted here -->
                     </div>
+                    <!-- Self-evaluation section -->
+                    <div id="self-evaluation-section" class="mt-4 hidden">
+                         <button id="check-answers-button" class="bg-blue-500 text-white font-semibold py-2 px-3 rounded-xl hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 shadow-md w-full text-xs md:text-sm">
+                            Comprobar Respuestas
+                        </button>
+                        <div id="evaluation-results" class="mt-2 p-2 rounded-xl text-center font-semibold" style="display:none;"></div>
+                    </div>
                 </div>
                 
                 <div id="critical-reading-section">
@@ -305,7 +312,7 @@
             <div id="custom-controls-row-1" class="w-full flex flex-col md:flex-row items-center gap-2">
                 <!-- WPM Slider -->
                 <div class="flex items-center gap-1 w-full md:w-1/3">
-                    <label for="wpm-slider" class="text-xs font-medium whitespace-nowrap">WPM:</label>
+                    <label for="wpm-slider" class="text-xs font-medium whitespace-nowrap">PPM:</label>
                     <span id="wpm-value" class="w-8 text-center font-bold">300</span>
                     <input type="range" id="wpm-slider" min="100" max="1000" value="300" step="10" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer">
                 </div>
@@ -330,7 +337,7 @@
                     </select>
                 </div>
             </div>
-
+            
             <!-- Customization Controls Row 2 -->
             <div id="custom-controls-row-2" class="w-full flex flex-col md:flex-row items-center gap-2 mt-2">
                 <!-- Font Size Slider -->
@@ -349,7 +356,7 @@
                     </select>
                 </div>
             </div>
-            
+
             <!-- Customization Controls Row 3 -->
             <div id="highlight-controls" class="w-full flex flex-col md:flex-row items-center gap-2 mt-2">
                 <!-- Highlight Style Select -->
@@ -361,875 +368,506 @@
                         <option value="highlight-bold-orp">Negrita (ORP)</option>
                     </select>
                 </div>
-
+                
                 <!-- Words per Chunk Slider -->
                 <div class="flex items-center gap-1 w-full md:w-1/2">
                     <label for="words-per-chunk-slider" class="text-xs font-medium whitespace-nowrap">Grupo:</label>
                     <span id="words-per-chunk-value" class="w-8 text-center font-bold">1</span>
-                    <input type="range" id="words-per-chunk-slider" min="1" max="5" value="1" step="1" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                    <input type="range" id="words-per-chunk-slider" min="1" max="10" value="1" step="1" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer">
                 </div>
-            </div>
-
-            <!-- New Control for Gaze Marker -->
-            <div class="w-full flex items-center justify-center gap-1 mt-2">
-                <input type="checkbox" id="gaze-marker-checkbox" class="h-3 w-3 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
-                <label for="gaze-marker-checkbox" class="text-xs font-medium">Usar Marcador de Gaze</label>
             </div>
             
-            <!-- Highlight and Font Color Pickers -->
-            <div class="w-full flex flex-col md:flex-row items-center justify-center gap-4 mt-2">
-                <div class="flex items-center gap-1">
-                    <label for="highlight-color-picker" class="text-xs font-medium whitespace-nowrap">Color Resalte:</label>
-                    <input type="color" id="highlight-color-picker" value="#fde68a" class="w-12 h-8 rounded-lg border border-gray-300 cursor-pointer">
-                </div>
-                <!-- NEW: Font Color Picker -->
-                <div class="flex items-center gap-1">
-                    <label for="font-color-picker" class="text-xs font-medium whitespace-nowrap">Color Fuente:</label>
-                    <input type="color" id="font-color-picker" value="#1f2937" class="w-12 h-8 rounded-lg border border-gray-300 cursor-pointer">
-                </div>
-            </div>
-
-            <div class="mt-4 text-xs text-center text-gray-500">
-                <p>Creador: Juan Miguel Ríos Redondo</p>
-            </div>
-
         </div>
     </div>
-
     <script>
-        // Se usa un enlace absoluto para el worker de PDF.js para evitar errores de carga en GitHub Pages
-        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js`;
+        // API Configuration and Variables
+        const API_KEY = ""; // Leave as empty string for local execution.
+        const GENERATION_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=" + API_KEY;
+        
+        let isReading = false;
+        let readingTimeout;
+        let currentIndex = 0;
+        let words = [];
+        let totalWords = 0;
+        let multipleChoiceQuestions = [];
 
-        // ========================
-        // DOM Element References
-        // ========================
+        // DOM Elements
         const textInput = document.getElementById('text-input');
-        const readingArea = document.getElementById('reading-area');
         const startButton = document.getElementById('start-button');
         const pauseButton = document.getElementById('pause-button');
         const stopButton = document.getElementById('stop-button');
+        const backButton = document.getElementById('back-button');
+        const nextButton = document.getElementById('next-button');
+        const clearButton = document.getElementById('clear-button');
         const wpmSlider = document.getElementById('wpm-slider');
-        const wpmValueSpan = document.getElementById('wpm-value');
-        const progressBar = document.getElementById('progress-bar');
+        const wpmValue = document.getElementById('wpm-value');
         const themeSelect = document.getElementById('theme-select');
         const fontSelect = document.getElementById('font-select');
         const fontSizeSlider = document.getElementById('font-size-slider');
-        const fontSizeValueSpan = document.getElementById('font-size-value');
-        const saveButton = document.getElementById('save-button');
-        const loadButton = document.getElementById('load-button');
-        const wordCounter = document.getElementById('word-counter');
-        const statsDisplay = document.getElementById('stats-display');
-        const fileInputText = document.getElementById('file-input-text');
-        const fileInputImage = document.getElementById('file-input-image');
-        const practiceButton = document.getElementById('practice-button');
+        const fontSizeValue = document.getElementById('font-size-value');
         const modeSelect = document.getElementById('mode-select');
-        const statusMessageBox = document.getElementById('status-message-box');
-        const highlightColorPicker = document.getElementById('highlight-color-picker');
-        
-        // New DOM references for highlight improvements
+        const highlightControls = document.getElementById('highlight-controls');
         const highlightStyleSelect = document.getElementById('highlight-style-select');
         const wordsPerChunkSlider = document.getElementById('words-per-chunk-slider');
-        const wordsPerChunkValueSpan = document.getElementById('words-per-chunk-value');
-        const highlightControls = document.getElementById('highlight-controls');
-        const gazeMarkerCheckbox = document.getElementById('gaze-marker-checkbox');
-
-        // New DOM references for critical reading questions
+        const wordsPerChunkValue = document.getElementById('words-per-chunk-value');
+        const readingArea = document.getElementById('reading-area');
+        const readingIntro = document.getElementById('reading-intro');
+        const wordCounter = document.getElementById('word-counter');
+        const statsDisplay = document.getElementById('stats-display');
+        const progressBar = document.getElementById('progress-bar');
+        const fileInputText = document.getElementById('file-input-text');
+        const fileInputImage = document.getElementById('file-input-image');
         const generateQuestionsButton = document.getElementById('generate-questions-button');
         const criticalReadingQuestionsContainer = document.getElementById('critical-reading-questions-container');
-        // New DOM references for the updated question sections
-        const multipleChoiceQuestions = document.getElementById('multiple-choice-questions');
-        const criticalReadingQuestions = document.getElementById('critical-reading-questions');
-        const loadingQuestions = document.getElementById('loading-questions');
+        const multipleChoiceQuestionsDiv = document.getElementById('multiple-choice-questions');
+        const criticalReadingQuestionsDiv = document.getElementById('critical-reading-questions');
+        const loadingQuestionsDiv = document.getElementById('loading-questions');
+        const checkAnswersButton = document.getElementById('check-answers-button');
+        const selfEvaluationSection = document.getElementById('self-evaluation-section');
+        const evaluationResultsDiv = document.getElementById('evaluation-results');
 
-        // New DOM references for navigation buttons
-        const backButton = document.getElementById('back-button');
-        const nextButton = document.getElementById('next-button');
-
-        // New DOM reference for clear button
-        const clearButton = document.getElementById('clear-button');
-
-        // NEW: DOM reference for font color picker
-        const fontColorPicker = document.getElementById('font-color-picker');
-
-        // ========================
-        // State Variables
-        // ========================
-        let words = [];
-        let currentIndex = 0;
-        let timer = null;
-        let isPaused = false;
-        let isReading = false;
-        let startTime = 0;
-        const punctuationPauseMultiplier = {
-            ',': 0.5,
-            ';': 0.7,
-            ':': 0.7,
-            '.': 1.0,
-            '?': 1.0,
-            '!': 1.0
-        };
-
-        // ========================
-        // Helper Functions for ORP
-        // ========================
-
-        // Determines the number of letters to bold for Optimal Recognition Points (ORP)
-        const getOrpLength = (word) => {
-            const cleanWord = word.replace(/[.,?!;:]/g, '');
-            if (cleanWord.length <= 2) return cleanWord.length;
-            if (cleanWord.length <= 5) return 2;
-            return 3;
-        };
-
-        // Applies ORP formatting to a word
-        const getOrpWord = (word) => {
-            const orpLength = getOrpLength(word);
-            const firstPart = word.substring(0, orpLength);
-            const restOfWord = word.substring(orpLength);
-            return `<b>${firstPart}</b>${restOfWord}`;
-        };
-
-        // ========================
-        // Core Functions
-        // ========================
-
-        // Displays a temporary status message
-        const showStatusMessage = (message, isError = false) => {
-            statusMessageBox.textContent = message;
-            statusMessageBox.classList.add('status-show');
-            if (isError) {
-                statusMessageBox.classList.remove('bg-blue-500');
-                statusMessageBox.classList.add('bg-red-500');
-            } else {
-                statusMessageBox.classList.remove('bg-red-500');
-                statusMessageBox.classList.add('bg-blue-500');
-            }
+        // Helper functions
+        function showStatusMessage(message) {
+            const statusBox = document.getElementById('status-message-box');
+            statusBox.textContent = message;
+            statusBox.classList.add('status-show');
             setTimeout(() => {
-                statusMessageBox.classList.remove('status-show');
+                statusBox.classList.remove('status-show');
             }, 3000);
-        };
+        }
 
-        // Saves the current reading session to local storage
-        const saveSession = () => {
-            if (words.length === 0) {
-                showStatusMessage('No hay texto para guardar.', true);
-                return;
-            }
-            try {
-                const sessionData = {
-                    text: textInput.value,
-                    progress: currentIndex,
-                    theme: themeSelect.value,
-                    font: fontSelect.value,
-                    fontSize: fontSizeSlider.value,
-                    mode: modeSelect.value,
-                    highlightStyle: highlightStyleSelect.value,
-                    highlightColor: highlightColorPicker.value,
-                    fontColor: fontColorPicker.value,
-                    wordsPerChunk: wordsPerChunkSlider.value,
-                    timestamp: new Date().toISOString()
-                };
-                localStorage.setItem('speedReadingSession', JSON.stringify(sessionData));
-                showStatusMessage('Sesión guardada exitosamente.');
-            } catch (error) {
-                console.error("Error saving session to localStorage:", error);
-                showStatusMessage('Error al guardar la sesión.', true);
-            }
-        };
-
-        // Loads a saved session from local storage
-        const loadSession = () => {
-            try {
-                const storedSession = localStorage.getItem('speedReadingSession');
-                if (storedSession) {
-                    const data = JSON.parse(storedSession);
-                    textInput.value = data.text;
-                    currentIndex = data.progress;
-                    
-                    // Update UI based on loaded data
-                    themeSelect.value = data.theme || 'light';
-                    fontSelect.value = data.font || 'inter';
-                    fontSizeSlider.value = data.fontSize || '14';
-                    modeSelect.value = data.mode || 'highlight';
-                    highlightStyleSelect.value = data.highlightStyle || 'highlight-background';
-                    highlightColorPicker.value = data.highlightColor || '#fde68a';
-                    // Load and apply font color
-                    fontColorPicker.value = data.fontColor || '#1f2937';
-                    readingArea.style.color = fontColorPicker.value;
-
-                    wordsPerChunkSlider.value = data.wordsPerChunk || '1';
-                    wpmSlider.value = data.wpm || '300';
-                    wpmValueSpan.textContent = wpmSlider.value;
-                    wordsPerChunkValueSpan.textContent = data.wordsPerChunk || '1';
-                    fontSizeValueSpan.textContent = data.fontSize || '14';
-
-                    // Manually trigger change events to apply styling and mode
-                    const themeChangeEvent = new Event('change');
-                    themeSelect.dispatchEvent(themeChangeEvent);
-
-                    const fontChangeEvent = new Event('change');
-                    fontSelect.dispatchEvent(fontChangeEvent);
-
-                    const modeChangeEvent = new Event('change');
-                    modeSelect.dispatchEvent(modeChangeEvent);
-                    
-                    const highlightStyleChangeEvent = new Event('change');
-                    highlightStyleSelect.dispatchEvent(highlightStyleChangeEvent);
-
-                    const highlightColorChangeEvent = new Event('input');
-                    highlightColorPicker.dispatchEvent(highlightColorChangeEvent);
-                    
-                    readingArea.style.fontSize = `${data.fontSize || '14'}px`;
-                    
-                    updateReadingDisplay(textInput.value);
-                    updateWordCounter();
-                    updateProgressBar();
-                    showStatusMessage('Sesión cargada desde el dispositivo.');
-                } else {
-                    showStatusMessage('No se encontró una sesión guardada.', false);
-                }
-            } catch (error) {
-                console.error("Error loading session from localStorage:", error);
-                showStatusMessage('Error al cargar la sesión.', true);
-            }
-        };
-
-        // Loads text from a local file (.txt or .pdf)
-        const loadFile = (file) => {
-            const reader = new FileReader();
-            
-            reader.onloadstart = () => {
-                showStatusMessage("Cargando archivo...");
-                textInput.value = '';
-                stopReading();
-            };
-            
-            reader.onerror = () => {
-                showStatusMessage("Error al leer el archivo.", true);
-            };
-            
-            if (file.type === 'text/plain') {
-                reader.onload = (event) => {
-                    textInput.value = event.target.result;
-                    showStatusMessage("Archivo de texto cargado exitosamente.");
-                    updateReadingDisplay(textInput.value);
-                };
-                reader.readAsText(file);
-            } else if (file.type === 'application/pdf') {
-                reader.onload = async (e) => {
-                    try {
-                        const arrayBuffer = e.target.result;
-                        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                        let fullText = '';
-                        
-                        for (let i = 1; i <= pdf.numPages; i++) {
-                            const page = await pdf.getPage(i);
-                            const textContent = await page.getTextContent();
-                            const pageText = textContent.items.map(item => item.str).join(' ').replace(/-\s*/g, '');
-                            fullText += pageText + ' ';
-                        }
-                        textInput.value = fullText.trim();
-                        showStatusMessage("PDF cargado exitosamente.");
-                        updateReadingDisplay(textInput.value);
-                    } catch (error) {
-                        showStatusMessage("Error al procesar el PDF.", true);
-                        console.error('Error al procesar el PDF:', error);
-                    }
-                };
-                reader.readAsArrayBuffer(file);
-            } else {
-                showStatusMessage("Formato de archivo no soportado.", true);
-            }
-        };
-
-        /**
-         * @description Extracts text from an image using the Tesseract.js library.
-         * The function performs OCR directly in the browser, eliminating the need for an external API call.
-         * @param {File} file The image file to process.
-         */
-        const extractTextFromImage = async (file) => {
-            showStatusMessage('Procesando imagen, esto puede tardar unos segundos...');
-            try {
-                const { data: { text } } = await Tesseract.recognize(
-                    file,
-                    'spa', // Set language to Spanish
-                    { logger: m => console.log(m) } // Log progress
-                );
-                
-                if (text && text.trim().length > 0) {
-                    textInput.value = text.trim();
-                    updateReadingDisplay(textInput.value);
-                    showStatusMessage('Texto extraído exitosamente.');
-                } else {
-                    showStatusMessage("No se pudo extraer el texto de la imagen. Intenta con una imagen más clara.", true);
-                }
-            } catch (error) {
-                console.error('Error durante el reconocimiento de OCR:', error);
-                showStatusMessage('Error al procesar la imagen.', true);
-            }
-        };
-        
-        /**
-         * @description Generates reading comprehension and critical thinking questions using the Gemini API.
-         * The function now generates multiple-choice questions for comprehension and free-form questions for critical reading.
-         */
-        const generateQuestions = async () => {
-            const textToAnalyze = textInput.value.trim();
-            if (textToAnalyze.length < 50) {
-                showStatusMessage('El texto es demasiado corto para generar preguntas significativas.', true);
-                return;
-            }
-
-            // Show loading state
-            criticalReadingQuestionsContainer.style.display = 'block';
-            loadingQuestions.classList.remove('hidden');
-            multipleChoiceQuestions.innerHTML = '';
-            criticalReadingQuestions.innerHTML = '';
-
-            // This is the prompt that will instruct the model
-            const prompt = `Genera preguntas de comprensión de opción múltiple y preguntas de lectura crítica abiertas sobre el siguiente texto.
-            
-            Preguntas de Comprensión (Opción Múltiple):
-            - Genera 5 preguntas.
-            - Cada pregunta debe tener 4 opciones (a, b, c, d), y una de ellas debe ser la respuesta correcta.
-            
-            Preguntas de Lectura Crítica:
-            - Genera 5 preguntas abiertas que requieran un análisis más profundo y una respuesta personal.
-            
-            Formatea tu respuesta como un objeto JSON con la siguiente estructura:
-            
-            {
-              "multiple_choice_questions": [
-                {
-                  "question": "Texto de la pregunta",
-                  "options": [ "Opción A", "Opción B", "Opción C", "Opción D" ],
-                  "correct_answer": "Respuesta correcta"
-                },
-                // ... más preguntas
-              ],
-              "critical_reading_questions": [
-                "Texto de la pregunta 1",
-                "Texto de la pregunta 2",
-                // ... más preguntas
-              ]
-            }
-            
-            Texto:
-            "${textToAnalyze}"`;
-
-            // This is the schema for the structured JSON response
-            const responseSchema = {
-                type: "OBJECT",
-                properties: {
-                    "multiple_choice_questions": {
-                        type: "ARRAY",
-                        items: {
-                            type: "OBJECT",
-                            properties: {
-                                "question": { "type": "STRING" },
-                                "options": {
-                                    "type": "ARRAY",
-                                    "items": { "type": "STRING" }
-                                },
-                                "correct_answer": { "type": "STRING" }
-                            },
-                            "propertyOrdering": ["question", "options", "correct_answer"]
-                        }
-                    },
-                    "critical_reading_questions": {
-                        "type": "ARRAY",
-                        "items": { "type": "STRING" }
-                    }
-                },
-                "propertyOrdering": ["multiple_choice_questions", "critical_reading_questions"]
-            };
-            
-            let chatHistory = [];
-            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-            const payload = { 
-                contents: chatHistory,
-                generationConfig: {
-                    responseMimeType: "application/json",
-                    responseSchema: responseSchema
-                }
-            };
-            
-            // ====================================================================================
-            // INSTRUCCIONES IMPORTANTES:
-            // Pega tu clave de API personal de Google AI Studio en la línea de abajo,
-            // dentro de las comillas dobles. Esta clave es necesaria para que funcione
-            // la generación de preguntas.
-            // ====================================================================================
-            const apiKey = "AIzaSyDg7-ZvjoBvaegUcHgi_McIn8l68hYBs6k";
-
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-
-            // Exponential backoff for API calls
-            const maxRetries = 3;
-            let currentRetry = 0;
-            const fetchWithRetry = async () => {
-                try {
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) {
-                        if (response.status === 429 && currentRetry < maxRetries) {
-                            const delay = Math.pow(2, currentRetry) * 1000;
-                            currentRetry++;
-                            await new Promise(resolve => setTimeout(resolve, delay));
-                            return fetchWithRetry();
-                        } else {
-                            throw new Error(`Error HTTP: ${response.status}`);
-                        }
-                    }
-
-                    const result = await response.json();
-                    
-                    if (result.candidates && result.candidates.length > 0 &&
-                        result.candidates[0].content && result.candidates[0].content.parts &&
-                        result.candidates[0].content.parts.length > 0) {
-                        
-                        const jsonText = result.candidates[0].content.parts[0].text;
-                        const data = JSON.parse(jsonText);
-                        
-                        // Render Multiple Choice Questions
-                        const mcqHtml = data.multiple_choice_questions.map((q, index) => `
-                            <div class="mb-4">
-                                <p class="font-semibold text-sm mb-1">${index + 1}. ${q.question}</p>
-                                <ul class="list-none space-y-1 ml-4 text-xs">
-                                    ${q.options.map(option => `
-                                        <li><label><input type="radio" name="mcq-${index}" class="mr-2">${option}</label></li>
-                                    `).join('')}
-                                </ul>
-                            </div>
-                        `).join('');
-                        multipleChoiceQuestions.innerHTML = mcqHtml;
-                        
-                        // Render Critical Reading Questions
-                        const crqHtml = data.critical_reading_questions.map((q, index) => `
-                            <li>${q}</li>
-                        `).join('');
-                        criticalReadingQuestions.innerHTML = `<ul class="list-disc list-inside space-y-2 text-xs">${crqHtml}</ul>`;
-
-                        showStatusMessage('Preguntas generadas exitosamente.');
-                    } else {
-                        throw new Error('Respuesta de la API inesperada.');
-                    }
-                } catch (error) {
-                    console.error('Error al generar preguntas:', error);
-                    multipleChoiceQuestions.innerHTML = `<p class="text-red-500">Error al generar preguntas de opción múltiple.</p>`;
-                    criticalReadingQuestions.innerHTML = `<p class="text-red-500">Error al generar preguntas de lectura crítica.</p>`;
-                    showStatusMessage('Error al generar preguntas.', true);
-                } finally {
-                    loadingQuestions.classList.add('hidden');
-                }
-            };
-            
-            fetchWithRetry();
-        };
-
-        // Updates the reading area based on the selected mode
-        const updateReadingDisplay = (text) => {
-            words = text.split(/\s+/).filter(word => word.length > 0);
-            const mode = modeSelect.value;
-            const highlightStyle = highlightStyleSelect.value;
-
-            // Clear previous styles and content
-            readingArea.innerHTML = '';
-            // Se limpian las clases de modo
-            readingArea.classList.remove('highlight-background', 'highlight-underline', 'highlight-bold-orp', 'single-word-mode');
-            
-            if (words.length > 0) {
-                if (mode === 'highlight') {
-                    // Set white-space to preserve formatting in highlight mode
-                    readingArea.style.whiteSpace = 'pre-wrap';
-                    
-                    readingArea.classList.add(highlightStyle);
-                    words.forEach((word, index) => {
-                        const span = document.createElement('span');
-                        span.className = 'word cursor-pointer';
-                        span.dataset.index = index;
-                        // Comentario: ORP (Optimal Recognition Point) es el punto óptimo donde el ojo se fija en una palabra.
-                        // El estilo `highlight-bold-orp` resalta este punto con negrita y un subrayado.
-                        // El color del subrayado es el color de resalte, mientras que el color de la fuente
-                        // es el color del tema seleccionado.
-                        if (highlightStyle === 'highlight-bold-orp') {
-                            span.innerHTML = getOrpWord(word) + ' ';
-                        } else {
-                            span.textContent = word + ' ';
-                        }
-                        readingArea.appendChild(span);
-                    });
-                } else if (mode === 'single-word') {
-                    // Reset white-space for single-word mode
-                    readingArea.style.whiteSpace = 'nowrap';
-                    
-                    readingArea.classList.add('single-word-mode');
-                }
-                readingArea.classList.remove('italic');
-                readingArea.style.textAlign = mode === 'single-word' ? 'center' : 'left';
-                // Initially display the word at the current index if it exists
-                if (currentIndex < words.length) {
-                     displayCurrentWord(currentIndex);
-                }
-            } else {
-                readingArea.innerHTML = '<span id="reading-intro" class="text-center italic text-gray-600">El texto de tu lectura aparecerá aquí.</span>';
-                readingArea.classList.add('italic');
-                readingArea.style.textAlign = 'center';
-            }
-        };
-
-        // Displays a single word or chunk without advancing the index or starting a timer
-        const displayCurrentWord = (index) => {
-            const mode = modeSelect.value;
-            const wordsPerChunk = parseInt(wordsPerChunkSlider.value, 10);
-            
-            // Show/hide gaze marker based on checkbox state
-            let gazeMarker = document.getElementById('gaze-marker');
-            if (gazeMarkerCheckbox.checked && mode === 'highlight') {
-                 if (!gazeMarker) {
-                    gazeMarker = document.createElement('div');
-                    gazeMarker.id = 'gaze-marker';
-                    gazeMarker.className = 'gaze-marker';
-                    readingArea.appendChild(gazeMarker);
-                }
-            } else {
-                if (gazeMarker) {
-                    gazeMarker.remove();
-                }
-            }
-
-
-            if (mode === 'highlight') {
-                const allSpans = readingArea.querySelectorAll('span.word');
-                
-                // Remove highlight from all words
-                allSpans.forEach(span => span.classList.remove('highlighted'));
-
-                // Highlight the new chunk
-                const currentChunkEnd = Math.min(index + wordsPerChunk, words.length);
-                for (let i = index; i < currentChunkEnd; i++) {
-                    if (allSpans[i]) {
-                         allSpans[i].classList.add('highlighted');
-                    }
-                }
-
-                // Scroll to keep the chunk in view
-                if (allSpans[index]) {
-                    const chunkStartTop = allSpans[index].offsetTop;
-                    const readingAreaHeight = readingArea.clientHeight;
-                    const scrollPos = chunkStartTop - (readingAreaHeight / 2);
-                    readingArea.scrollTop = scrollPos;
-                }
-            } else if (mode === 'single-word') {
-                 readingArea.innerHTML = '';
-                 
-                 const currentWord = words[index];
-                 if (!currentWord) return;
-
-                 const wordSpan = document.createElement('span');
-                 wordSpan.className = 'single-word-display';
-                 wordSpan.textContent = currentWord;
-                 
-                 readingArea.appendChild(wordSpan);
-            }
-            updateProgressBar();
-            updateWordCounter();
-            updateStats();
-        };
-
-        // Renders the next word/chunk in the reading session
-        const displayNextWord = () => {
-            if (!isReading) return;
-            
-            if (currentIndex < words.length) {
-                const wordsPerChunk = parseInt(wordsPerChunkSlider.value, 10);
-                
-                displayCurrentWord(currentIndex);
-                
-                const lastWordOfChunk = words[Math.min(currentIndex + wordsPerChunk - 1, words.length - 1)];
-                const lastChar = lastWordOfChunk ? lastWordOfChunk.slice(-1) : '';
-                const punctuationPauseMultiplier = {
-                    ',': 0.5,
-                    ';': 0.7,
-                    ':': 0.7,
-                    '.': 1.0,
-                    '?': 1.0,
-                    '!': 1.0
-                };
-                const pauseMultiplier = punctuationPauseMultiplier[lastChar] || 0;
-                const baseInterval = 60000 / wpmSlider.value;
-                const nextInterval = baseInterval * wordsPerChunk + (baseInterval * pauseMultiplier);
-                
-                currentIndex += wordsPerChunk;
-                timer = setTimeout(displayNextWord, nextInterval);
-            } else {
-                stopReading();
-                showStatusMessage("¡Lectura completada!");
-            }
-        };
-        
-        // Updates the progress bar
-        const updateProgressBar = () => {
-            const progress = (currentIndex / words.length) * 100;
-            progressBar.style.width = `${progress}%`;
-        };
-
-        // Updates the word counter
-        const updateWordCounter = () => {
-            wordCounter.textContent = `Palabra ${Math.min(currentIndex, words.length)} de ${words.length}`;
-        };
-        
-        // Updates the reading stats
-        const updateStats = () => {
-            if (!isReading || startTime === 0) {
+        // --- Core Reading Logic ---
+        function updateReadingDisplay(text) {
+            if (!text) {
+                readingArea.innerHTML = `<span id="reading-intro" class="text-center italic text-gray-600">El texto de tu lectura aparecerá aquí.</span>`;
+                words = [];
+                totalWords = 0;
+                wordCounter.textContent = '';
                 statsDisplay.textContent = '';
                 return;
             }
-            const elapsedTime = (Date.now() - startTime) / 1000;
-            const wordsRemaining = words.length - currentIndex;
-            const wpm = wpmSlider.value;
-            const estimatedTime = (wordsRemaining / wpm) * 60;
-            
-            const formatTime = (seconds) => {
-                const mins = Math.floor(seconds / 60);
-                const secs = Math.floor(seconds % 60);
-                return `${mins}:${secs.toString().padStart(2, '0')}`;
-            };
-            
-            statsDisplay.textContent = `Tiempo: ${formatTime(elapsedTime)} | Restante: ~${formatTime(estimatedTime)}`;
-        };
-        
-        // Starts the reading session
-        const startReading = () => {
-            // New, more robust logic to prevent word skipping
-            const textToRead = textInput.value.trim();
-            if (textToRead === "") {
-                showStatusMessage("Por favor, pega un texto, carga un archivo o una imagen.", true);
+
+            words = text.match(/\b[\w'-]+\b/g) || [];
+            totalWords = words.length;
+            wordCounter.textContent = `Palabra: ${currentIndex + 1} de ${totalWords}`;
+            updateStats();
+
+            // Set the appropriate reading mode class on the reading area
+            readingArea.className = `bg-card w-full h-24 md:h-40 p-2 md:p-4 border rounded-xl overflow-y-auto focus:outline-none border-theme ${modeSelect.value}-mode ${highlightStyleSelect.value}`;
+
+            if (modeSelect.value === 'highlight') {
+                readingArea.innerHTML = words.map((word, index) => {
+                    const normalizedWord = word.replace(/[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ'-]/g, '');
+                    return `<span class="word" data-index="${index}">${word}</span>`;
+                }).join(' ');
+                displayCurrentWord(currentIndex);
+            } else if (modeSelect.value === 'single-word') {
+                displayCurrentWord(currentIndex);
+            }
+        }
+
+        function displayCurrentWord(index) {
+            if (index < 0 || index >= words.length) {
+                stopReading();
                 return;
             }
 
-            // Re-initialize if the text has changed
-            const newWords = textToRead.split(/\s+/).filter(word => word.length > 0);
-            if (newWords.join(' ') !== words.join(' ')) {
-                words = newWords;
-                currentIndex = 0;
-                updateReadingDisplay(textToRead);
+            currentIndex = index;
+            const wordsPerChunk = parseInt(wordsPerChunkSlider.value, 10);
+            const start = currentIndex;
+            const end = Math.min(currentIndex + wordsPerChunk, totalWords);
+
+            // Update progress bar
+            const progress = (currentIndex / totalWords) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            if (modeSelect.value === 'single-word') {
+                const chunk = words.slice(start, end).join(' ');
+                readingArea.innerHTML = `<span class="single-word-display">${chunk}</span>`;
+            } else { // highlight mode
+                const allWordSpans = readingArea.querySelectorAll('.word');
+                allWordSpans.forEach(span => span.classList.remove('highlighted'));
+
+                for (let i = start; i < end; i++) {
+                    const wordSpan = readingArea.querySelector(`[data-index="${i}"]`);
+                    if (wordSpan) {
+                        wordSpan.classList.add('highlighted');
+                        // Scroll into view
+                        const container = readingArea;
+                        const element = wordSpan;
+                        const containerRect = container.getBoundingClientRect();
+                        const elementRect = element.getBoundingClientRect();
+
+                        if (elementRect.bottom > containerRect.bottom || elementRect.top < containerRect.top) {
+                            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }
+                }
             }
 
-            if (isReading && !isPaused) {
-                return; // Already reading and not paused, do nothing
-            }
+            wordCounter.textContent = `Palabra: ${currentIndex + 1} de ${totalWords}`;
+            updateStats();
+        }
 
-            // Start or resume the session
+        function updateStats() {
+            const wpm = parseInt(wpmSlider.value, 10);
+            const wordsRemaining = totalWords - currentIndex - 1;
+            const minutesRemaining = Math.ceil(wordsRemaining / wpm);
+            statsDisplay.textContent = `PPM: ${wpm} | Tiempo restante: ~${minutesRemaining} min`;
+        }
+
+        function startReading() {
+            if (isReading) return;
             isReading = true;
-            isPaused = false;
-            if (startTime === 0) {
-                 startTime = Date.now();
+            startButton.textContent = 'Reanudar';
+            startButton.classList.remove('bg-green-500');
+            startButton.classList.add('bg-blue-500');
+            readingLoop();
+        }
+
+        function pauseReading() {
+            isReading = false;
+            clearTimeout(readingTimeout);
+            startButton.textContent = 'Reanudar';
+            startButton.classList.remove('bg-green-500');
+            startButton.classList.add('bg-blue-500');
+        }
+
+        function stopReading() {
+            pauseReading();
+            currentIndex = 0;
+            updateReadingDisplay(textInput.value);
+            startButton.textContent = 'Iniciar';
+            startButton.classList.remove('bg-blue-500');
+            startButton.classList.add('bg-green-500');
+            progressBar.style.width = `0%`;
+        }
+
+        function nextWord() {
+            pauseReading();
+            currentIndex++;
+            displayCurrentWord(currentIndex);
+        }
+
+        function prevWord() {
+            pauseReading();
+            currentIndex = Math.max(0, currentIndex - 1);
+            displayCurrentWord(currentIndex);
+        }
+
+        function readingLoop() {
+            if (!isReading || currentIndex >= totalWords) {
+                stopReading();
+                return;
+            }
+            displayCurrentWord(currentIndex);
+            currentIndex += parseInt(wordsPerChunkSlider.value, 10);
+            const wpm = parseInt(wpmSlider.value, 10);
+            const delay = (60000 / wpm) * parseInt(wordsPerChunkSlider.value, 10);
+            readingTimeout = setTimeout(readingLoop, delay);
+        }
+
+        // --- Question Generation Logic ---
+        async function generateQuestions() {
+            const text = textInput.value;
+            if (text.length === 0) {
+                showStatusMessage('Por favor, ingresa un texto para generar preguntas.');
+                return;
             }
             
-            // The displayNextWord function now handles the timer and the word advancement
-            displayNextWord();
-        };
+            // Show loading indicator
+            loadingQuestionsDiv.classList.remove('hidden');
+            criticalReadingQuestionsContainer.style.display = 'block';
+            generateQuestionsButton.disabled = true;
 
-        // Pauses the reading session
-        const pauseReading = () => {
-            if (timer) {
-                clearTimeout(timer);
-                isPaused = true;
-                isReading = false;
-                showStatusMessage("Pausado");
-            }
-        };
+            const prompt = `Con base en el siguiente texto, crea 3 preguntas de comprensión de opción múltiple, cada una con 4 opciones y una respuesta correcta. Además, crea 3 preguntas de lectura crítica de formato libre. La salida debe ser un objeto JSON con dos arrays: 'multiple_choice' y 'critical_reading'. Los objetos de 'multiple_choice' deben tener 'question', 'options' (un array), y 'correct_answer' (un string). Los objetos de 'critical_reading' deben tener un 'question' (un string). La respuesta completa debe ser un único objeto JSON. No incluyas ningún otro texto, explicaciones o código fuera del JSON.
+            
+            Texto a analizar:
+            "${text}"
+            `;
 
-        // Stops the reading session and resets state
-        const stopReading = () => {
-            if (timer) {
-                clearTimeout(timer);
-            }
-            isPaused = false;
-            isReading = false;
-            currentIndex = 0;
-            startTime = 0;
-            updateProgressBar();
-            updateWordCounter();
-            updateStats();
-            updateReadingDisplay(textInput.value);
-            showStatusMessage("Detenido");
-            // Remove gaze marker when stopped
-            let gazeMarker = document.getElementById('gaze-marker');
-            if (gazeMarker) {
-                gazeMarker.remove();
-            }
-        };
+            try {
+                const payload = {
+                    contents: [{ role: "user", parts: [{ text: prompt }] }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "OBJECT",
+                            properties: {
+                                "multiple_choice": {
+                                    "type": "ARRAY",
+                                    "items": {
+                                        "type": "OBJECT",
+                                        "properties": {
+                                            "question": { "type": "STRING" },
+                                            "options": {
+                                                "type": "ARRAY",
+                                                "items": { "type": "STRING" }
+                                            },
+                                            "correct_answer": { "type": "STRING" }
+                                        },
+                                        "propertyOrdering": ["question", "options", "correct_answer"]
+                                    }
+                                },
+                                "critical_reading": {
+                                    "type": "ARRAY",
+                                    "items": {
+                                        "type": "OBJECT",
+                                        "properties": {
+                                            "question": { "type": "STRING" }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
 
-        // Clears all text and resets the application state
-        const clearAll = () => {
-            stopReading();
-            textInput.value = '';
-            words = [];
-            currentIndex = 0;
-            updateReadingDisplay('');
-            criticalReadingQuestionsContainer.style.display = 'none';
-            multipleChoiceQuestions.innerHTML = '';
-            criticalReadingQuestions.innerHTML = '';
-            showStatusMessage("Texto borrado.");
-        };
+                const response = await fetch(GENERATION_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                if (!result || !result.candidates || result.candidates.length === 0 || !result.candidates[0].content || !result.candidates[0].content.parts || result.candidates[0].content.parts.length === 0) {
+                    throw new Error("Invalid response structure from API.");
+                }
+
+                const jsonString = result.candidates[0].content.parts[0].text;
+                const questionsData = JSON.parse(jsonString);
+                
+                multipleChoiceQuestions = questionsData.multiple_choice;
+                const criticalReadingQuestions = questionsData.critical_reading;
+                
+                displayMultipleChoiceQuestions(multipleChoiceQuestions);
+                displayCriticalReadingQuestions(criticalReadingQuestions);
+
+            } catch (error) {
+                console.error('Error generating questions:', error);
+                showStatusMessage('Hubo un error al generar las preguntas. Por favor, inténtalo de nuevo.');
+                // Re-enable button on error
+                generateQuestionsButton.disabled = false;
+            } finally {
+                loadingQuestionsDiv.classList.add('hidden');
+                generateQuestionsButton.disabled = false;
+            }
+        }
+
+        function displayMultipleChoiceQuestions(questions) {
+            multipleChoiceQuestionsDiv.innerHTML = '';
+            questions.forEach((q, qIndex) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'bg-gray-100 p-3 rounded-lg shadow-sm mb-3';
+                questionDiv.innerHTML = `<p class="font-semibold mb-2">${qIndex + 1}. ${q.question}</p>`;
+                
+                q.options.forEach((option, oIndex) => {
+                    const optionLabel = document.createElement('label');
+                    optionLabel.className = 'block mb-1';
+                    optionLabel.innerHTML = `
+                        <input type="radio" name="question-${qIndex}" value="${option}" class="mr-2">
+                        ${option}
+                    `;
+                    questionDiv.appendChild(optionLabel);
+                });
+                multipleChoiceQuestionsDiv.appendChild(questionDiv);
+            });
+            if (questions.length > 0) {
+                 selfEvaluationSection.classList.remove('hidden');
+            }
+        }
         
-        // Navigates to the previous word/chunk
-        const prevWord = () => {
-            const wordsPerChunk = parseInt(wordsPerChunkSlider.value, 10);
-            pauseReading();
-            currentIndex = Math.max(0, currentIndex - wordsPerChunk);
-            displayCurrentWord(currentIndex);
-        };
-
-        // Navigates to the next word/chunk
-        const nextWord = () => {
-            const wordsPerChunk = parseInt(wordsPerChunkSlider.value, 10);
-            pauseReading();
-            currentIndex = Math.min(words.length, currentIndex + wordsPerChunk);
-            displayCurrentWord(currentIndex);
-        };
+        function displayCriticalReadingQuestions(questions) {
+            criticalReadingQuestionsDiv.innerHTML = '';
+            questions.forEach((q, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'bg-gray-100 p-3 rounded-lg shadow-sm mb-3';
+                questionDiv.innerHTML = `<p class="font-semibold mb-2">${index + 1}. ${q.question}</p>`;
+                criticalReadingQuestionsDiv.appendChild(questionDiv);
+            });
+        }
         
-        // Loads a predefined text for practice mode
-        const startPracticeMode = () => {
-            const practiceText = "La práctica de la lectura de velocidad es una habilidad que mejora con la constancia y la concentración. Entrena tu mente para captar grupos de palabras en lugar de una por una, minimizando el movimiento ocular. Esto te permitirá absorber información más rápidamente y mejorar la retención. ¡Inténtalo ahora!";
-            textInput.value = practiceText;
-            updateReadingDisplay(practiceText);
-            showStatusMessage("Modo práctica iniciado.");
-        };
+        function checkAnswers() {
+            let correctAnswers = 0;
+            const totalQuestions = multipleChoiceQuestions.length;
+            
+            evaluationResultsDiv.innerHTML = '';
+            evaluationResultsDiv.style.display = 'block';
 
-        // ========================
-        // Event Listeners
-        // ========================
+            multipleChoiceQuestions.forEach((q, qIndex) => {
+                const selectedOption = document.querySelector(`input[name="question-${qIndex}"]:checked`);
+                const questionDiv = document.querySelector(`#multiple-choice-questions > div:nth-child(${qIndex + 1})`);
+                
+                // Remove previous feedback classes
+                questionDiv.classList.remove('border-green-500', 'border-red-500', 'border-2');
+                
+                const allOptions = questionDiv.querySelectorAll('label');
+                allOptions.forEach(label => {
+                    label.classList.remove('text-green-600', 'text-red-600', 'font-bold');
+                });
 
-        // Button clicks
-        startButton.addEventListener('click', startReading);
+                if (selectedOption) {
+                    const selectedValue = selectedOption.value;
+                    
+                    if (selectedValue === q.correct_answer) {
+                        correctAnswers++;
+                        questionDiv.classList.add('border-green-500', 'border-2');
+                        selectedOption.closest('label').classList.add('text-green-600', 'font-bold');
+                    } else {
+                        questionDiv.classList.add('border-red-500', 'border-2');
+                        selectedOption.closest('label').classList.add('text-red-600', 'font-bold');
+                        // Highlight the correct answer
+                        const correctLabel = Array.from(allOptions).find(label => label.textContent.trim() === q.correct_answer);
+                        if (correctLabel) {
+                            correctLabel.classList.add('text-green-600', 'font-bold');
+                        }
+                    }
+                } else {
+                    // No answer selected, just highlight the correct one
+                    questionDiv.classList.add('border-red-500', 'border-2');
+                    const correctLabel = Array.from(allOptions).find(label => label.textContent.trim() === q.correct_answer);
+                    if (correctLabel) {
+                        correctLabel.classList.add('text-green-600', 'font-bold');
+                    }
+                }
+            });
+
+            const percentage = (correctAnswers / totalQuestions) * 100;
+            let message = `Obtuviste ${correctAnswers} de ${totalQuestions} correctas (${percentage.toFixed(0)}%).`;
+            if (percentage >= 80) {
+                evaluationResultsDiv.classList.remove('bg-red-200');
+                evaluationResultsDiv.classList.add('bg-green-200');
+                message += ' ¡Excelente trabajo!';
+            } else if (percentage >= 50) {
+                evaluationResultsDiv.classList.remove('bg-red-200');
+                evaluationResultsDiv.classList.add('bg-yellow-200');
+                message += ' ¡Bien hecho! Sigue practicando.';
+            } else {
+                evaluationResultsDiv.classList.remove('bg-yellow-200');
+                evaluationResultsDiv.classList.add('bg-red-200');
+                message += ' Sigue intentándolo.';
+            }
+
+            evaluationResultsDiv.textContent = message;
+        }
+
+        // --- Event Listeners ---
+        startButton.addEventListener('click', () => {
+            if (words.length > 0) {
+                startReading();
+            } else {
+                showStatusMessage('Por favor, ingresa un texto para comenzar.');
+            }
+        });
         pauseButton.addEventListener('click', pauseReading);
         stopButton.addEventListener('click', stopReading);
-        saveButton.addEventListener('click', saveSession);
-        loadButton.addEventListener('click', loadSession);
-        practiceButton.addEventListener('click', startPracticeMode);
-        generateQuestionsButton.addEventListener('click', generateQuestions);
-        
-        // New navigation buttons
         backButton.addEventListener('click', prevWord);
         nextButton.addEventListener('click', nextWord);
-
-        // New clear button
-        clearButton.addEventListener('click', clearAll);
-
-        // File inputs
-        fileInputText.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                loadFile(file);
-            }
+        clearButton.addEventListener('click', () => {
+            stopReading();
+            textInput.value = '';
+            updateReadingDisplay('');
+            
+            // Clear all questions and hide their containers
+            multipleChoiceQuestions = [];
+            multipleChoiceQuestionsDiv.innerHTML = '';
+            criticalReadingQuestionsDiv.innerHTML = '';
+            criticalReadingQuestionsContainer.style.display = 'none';
+            selfEvaluationSection.classList.add('hidden');
+            evaluationResultsDiv.style.display = 'none';
         });
-        fileInputImage.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                extractTextFromImage(file);
-            }
-        });
-
-        // Sliders
         wpmSlider.addEventListener('input', () => {
-            wpmValueSpan.textContent = wpmSlider.value;
+            wpmValue.textContent = wpmSlider.value;
+            updateStats();
         });
-
-        fontSizeSlider.addEventListener('input', () => {
-            fontSizeValueSpan.textContent = fontSizeSlider.value;
-            readingArea.style.fontSize = `${fontSizeSlider.value}px`;
-        });
-        
-        wordsPerChunkSlider.addEventListener('input', () => {
-            wordsPerChunkValueSpan.textContent = wordsPerChunkSlider.value;
-            updateReadingDisplay(textInput.value); // Re-render to update highlight
-            displayCurrentWord(currentIndex); // Update highlight position
-        });
-        
-        // Select boxes
         themeSelect.addEventListener('change', (e) => {
-            // Apply theme CSS variables to the document
-            document.body.classList.remove('light', 'dark', 'sepia');
-            document.body.classList.add(e.target.value);
-            
-            // Re-apply the font and font-size, as switching themes might reset them
-            readingArea.style.fontSize = `${fontSizeSlider.value}px`;
-            document.body.classList.remove('font-inter', 'font-serif', 'font-mono');
-            document.body.classList.add(`font-${fontSelect.value}`);
-            
-            // NEW: Update reading area font color based on mode and new theme
-            if (modeSelect.value === 'single-word') {
-                if (e.target.value === 'sepia') {
-                    readingArea.style.color = '#1f2937'; // Negro para tema sepia
-                    fontColorPicker.value = '#1f2937';
-                } else {
-                    readingArea.style.color = '#ef4444'; // Rojo para temas claro y oscuro
-                    fontColorPicker.value = '#ef4444';
-                }
-            } else {
-                // If not in single-word mode, reset to the user's selected color
-                 readingArea.style.color = fontColorPicker.value;
-            }
+            document.body.className = `${e.target.value} flex flex-col items-center justify-center min-h-screen p-4`;
         });
-
         fontSelect.addEventListener('change', (e) => {
-            document.body.classList.remove('font-inter', 'font-serif', 'font-mono');
-            document.body.classList.add(`font-${e.target.value}`);
+            readingArea.className = `bg-card w-full h-24 md:h-40 p-2 md:p-4 border rounded-xl overflow-y-auto focus:outline-none border-theme ${modeSelect.value}-mode ${highlightStyleSelect.value} font-${e.target.value}`;
         });
-
-        // ========================
-        // Fix: The mode change now correctly handles the font color for the reading area only.
-        // ========================
+        fontSizeSlider.addEventListener('input', (e) => {
+            fontSizeValue.textContent = e.target.value;
+            readingArea.style.fontSize = `${e.target.value}px`;
+        });
         modeSelect.addEventListener('change', (e) => {
             const isHighlightMode = e.target.value === 'highlight';
             highlightControls.style.display = isHighlightMode ? 'flex' : 'none';
             
-            if (e.target.value === 'single-word') {
-                 // NEW: Set color based on the current theme
-                if (themeSelect.value === 'sepia') {
-                    fontColorPicker.value = '#1f2937';
-                    readingArea.style.color = '#1f2937';
-                } else {
-                    fontColorPicker.value = '#ef4444';
-                    readingArea.style.color = '#ef4444';
-                }
+            // Fix: set words per chunk to 1 and disable when in single-word mode
+            if (!isHighlightMode) {
+                wordsPerChunkSlider.value = '1';
+                wordsPerChunkValue.textContent = '1';
+                wordsPerChunkSlider.disabled = true;
             } else {
-                // If switching back to highlight, reset to the user's selected color
-                readingArea.style.color = fontColorPicker.value;
+                wordsPerChunkSlider.disabled = false;
             }
 
-            // Trigger a full re-render to apply the correct classes and content structure
+            readingArea.classList.toggle('single-word-mode', !isHighlightMode);
             updateReadingDisplay(textInput.value);
-            // Ensure the reading area's background and border colors are updated with the current theme
-            readingArea.classList.remove('bg-card');
-            readingArea.classList.add('bg-card');
-            readingArea.classList.remove('border-theme');
-            readingArea.classList.add('border-theme');
+            stopReading();
+        });
+        highlightStyleSelect.addEventListener('change', (e) => {
+            readingArea.classList.remove('highlight-background', 'highlight-underline', 'highlight-bold-orp');
+            readingArea.classList.add(e.target.value);
+            displayCurrentWord(currentIndex);
+        });
+        wordsPerChunkSlider.addEventListener('input', () => {
+            wordsPerChunkValue.textContent = wordsPerChunkSlider.value;
         });
 
-        highlightStyleSelect.addEventListener('change', () => {
-            updateReadingDisplay(textInput.value);
+        textInput.addEventListener('input', (e) => {
+            updateReadingDisplay(e.target.value);
+            stopReading();
         });
 
-        // Highlight color picker
-        highlightColorPicker.addEventListener('input', (e) => {
-            document.documentElement.style.setProperty('--highlight-color', e.target.value);
+        fileInputText.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                    const fileExtension = file.name.split('.').pop().toLowerCase();
+                    let content = '';
+                    if (fileExtension === 'pdf') {
+                        const loadingTask = pdfjsLib.getDocument(event.target.result);
+                        const pdf = await loadingTask.promise;
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const textContent = await page.getTextContent();
+                            content += textContent.items.map(item => item.str).join(' ');
+                        }
+                    } else { // .txt
+                        content = event.target.result;
+                    }
+                    textInput.value = content;
+                    updateReadingDisplay(content);
+                };
+                reader.readAsArrayBuffer(file);
+            }
         });
         
-        // Font color picker listener
-        fontColorPicker.addEventListener('input', (e) => {
-            // Apply the user's color to the reading area
-            readingArea.style.color = e.target.value;
+        fileInputImage.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                Tesseract.recognize(
+                    file,
+                    'spa',
+                    { logger: m => console.log(m) }
+                ).then(({ data: { text } }) => {
+                    textInput.value = text;
+                    updateReadingDisplay(text);
+                });
+            }
         });
 
-        // New: Click event listener for the reading area
+        generateQuestionsButton.addEventListener('click', generateQuestions);
+        checkAnswersButton.addEventListener('click', checkAnswers);
+
         readingArea.addEventListener('click', (event) => {
             const target = event.target;
             // Check if the clicked element is a word span
@@ -1271,3 +909,4 @@
     </script>
 </body>
 </html>
+
