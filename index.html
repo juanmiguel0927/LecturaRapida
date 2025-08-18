@@ -235,11 +235,21 @@
             
             <!-- Critical Reading Prompts Section -->
             <div id="critical-reading-questions-container" class="w-full mb-2 p-3 rounded-xl border border-theme" style="display: none;">
-                <h3 class="font-bold text-sm md:text-lg mb-1">Preguntas de Comprensión</h3>
-                <div id="critical-reading-questions" class="text-xs md:text-sm space-y-1">
-                    <!-- Preguntas generadas por IA se insertarán aquí -->
+                <!-- New: separate sections for multiple choice and free-form questions -->
+                <div id="multiple-choice-section" class="mb-4">
+                    <h3 class="font-bold text-sm md:text-lg mb-1">Preguntas de Comprensión (Opción Múltiple)</h3>
+                    <div id="multiple-choice-questions" class="text-sm space-y-2">
+                        <!-- Multiple choice questions will be inserted here -->
+                    </div>
                 </div>
-                <div id="loading-questions" class="hidden text-center text-gray-500 italic text-xs md:text-sm">
+                
+                <div id="critical-reading-section">
+                    <h3 class="font-bold text-sm md:text-lg mb-1">Preguntas de Lectura Crítica</h3>
+                    <div id="critical-reading-questions" class="text-sm space-y-2">
+                        <!-- Critical reading questions will be inserted here -->
+                    </div>
+                </div>
+                <div id="loading-questions" class="hidden text-center text-gray-500 italic text-sm">
                     Generando preguntas...
                 </div>
             </div>
@@ -426,6 +436,8 @@
         // New DOM references for critical reading questions
         const generateQuestionsButton = document.getElementById('generate-questions-button');
         const criticalReadingQuestionsContainer = document.getElementById('critical-reading-questions-container');
+        // New DOM references for the updated question sections
+        const multipleChoiceQuestions = document.getElementById('multiple-choice-questions');
         const criticalReadingQuestions = document.getElementById('critical-reading-questions');
         const loadingQuestions = document.getElementById('loading-questions');
 
@@ -659,7 +671,7 @@
         
         /**
          * @description Generates reading comprehension and critical thinking questions using the Gemini API.
-         * The function sends the user's text to a large language model and displays the returned questions.
+         * The function now generates multiple-choice questions for comprehension and free-form questions for critical reading.
          */
         const generateQuestions = async () => {
             const textToAnalyze = textInput.value.trim();
@@ -671,25 +683,84 @@
             // Show loading state
             criticalReadingQuestionsContainer.style.display = 'block';
             loadingQuestions.classList.remove('hidden');
+            multipleChoiceQuestions.innerHTML = '';
             criticalReadingQuestions.innerHTML = '';
 
-            const prompt = `Genera un conjunto de 5 preguntas de comprensión y 5 preguntas de lectura crítica sobre el siguiente texto. Las preguntas deben ser claras y concisas.
-
+            // This is the prompt that will instruct the model
+            const prompt = `Genera preguntas de comprensión de opción múltiple y preguntas de lectura crítica abiertas sobre el siguiente texto.
+            
+            Preguntas de Comprensión (Opción Múltiple):
+            - Genera 5 preguntas.
+            - Cada pregunta debe tener 4 opciones (a, b, c, d), y una de ellas debe ser la respuesta correcta.
+            
+            Preguntas de Lectura Crítica:
+            - Genera 5 preguntas abiertas que requieran un análisis más profundo y una respuesta personal.
+            
+            Formatea tu respuesta como un objeto JSON con la siguiente estructura:
+            
+            {
+              "multiple_choice_questions": [
+                {
+                  "question": "Texto de la pregunta",
+                  "options": [ "Opción A", "Opción B", "Opción C", "Opción D" ],
+                  "correct_answer": "Respuesta correcta"
+                },
+                // ... más preguntas
+              ],
+              "critical_reading_questions": [
+                "Texto de la pregunta 1",
+                "Texto de la pregunta 2",
+                // ... más preguntas
+              ]
+            }
+            
             Texto:
-            "${textToAnalyze}"
-            `;
+            "${textToAnalyze}"`;
 
+            // This is the schema for the structured JSON response
+            const responseSchema = {
+                type: "OBJECT",
+                properties: {
+                    "multiple_choice_questions": {
+                        type: "ARRAY",
+                        items: {
+                            type: "OBJECT",
+                            properties: {
+                                "question": { "type": "STRING" },
+                                "options": {
+                                    "type": "ARRAY",
+                                    "items": { "type": "STRING" }
+                                },
+                                "correct_answer": { "type": "STRING" }
+                            },
+                            "propertyOrdering": ["question", "options", "correct_answer"]
+                        }
+                    },
+                    "critical_reading_questions": {
+                        "type": "ARRAY",
+                        "items": { "type": "STRING" }
+                    }
+                },
+                "propertyOrdering": ["multiple_choice_questions", "critical_reading_questions"]
+            };
+            
             let chatHistory = [];
             chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-            const payload = { contents: chatHistory };
+            const payload = { 
+                contents: chatHistory,
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: responseSchema
+                }
+            };
             
             // ====================================================================================
             // INSTRUCCIONES IMPORTANTES:
             // Pega tu clave de API personal de Google AI Studio en la línea de abajo,
-            // entre las comillas. Si el código está en un entorno web como GitHub Pages,
-            // esta clave es necesaria para que funcione la generación de preguntas.
+            // dentro de las comillas dobles. Esta clave es necesaria para que funcione
+            // la generación de preguntas.
             // ====================================================================================
-            const apiKey = "AIzaSyDg7-ZvjoBvaegUcHgi_McIn8l68hYBs6k";
+            const apiKey = "";
 
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
@@ -720,22 +791,37 @@
                     if (result.candidates && result.candidates.length > 0 &&
                         result.candidates[0].content && result.candidates[0].content.parts &&
                         result.candidates[0].content.parts.length > 0) {
-                        const text = result.candidates[0].content.parts[0].text;
-                        const questionsHtml = text.split('\n').map(q => {
-                            const trimmedQ = q.trim();
-                            if (trimmedQ.length > 0) {
-                                return `<li>${trimmedQ.replace(/^- /, '')}</li>`;
-                            }
-                            return '';
-                        }).join('');
-                        criticalReadingQuestions.innerHTML = `<ul class="list-disc list-inside space-y-2">${questionsHtml}</ul>`;
+                        
+                        const jsonText = result.candidates[0].content.parts[0].text;
+                        const data = JSON.parse(jsonText);
+                        
+                        // Render Multiple Choice Questions
+                        const mcqHtml = data.multiple_choice_questions.map((q, index) => `
+                            <div class="mb-4">
+                                <p class="font-semibold text-sm mb-1">${index + 1}. ${q.question}</p>
+                                <ul class="list-none space-y-1 ml-4 text-xs">
+                                    ${q.options.map(option => `
+                                        <li><label><input type="radio" name="mcq-${index}" class="mr-2">${option}</label></li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        `).join('');
+                        multipleChoiceQuestions.innerHTML = mcqHtml;
+                        
+                        // Render Critical Reading Questions
+                        const crqHtml = data.critical_reading_questions.map((q, index) => `
+                            <li>${q}</li>
+                        `).join('');
+                        criticalReadingQuestions.innerHTML = `<ul class="list-disc list-inside space-y-2 text-xs">${crqHtml}</ul>`;
+
                         showStatusMessage('Preguntas generadas exitosamente.');
                     } else {
                         throw new Error('Respuesta de la API inesperada.');
                     }
                 } catch (error) {
                     console.error('Error al generar preguntas:', error);
-                    criticalReadingQuestions.innerHTML = `<p class="text-red-500">Error al generar preguntas. Por favor, inténtalo de nuevo.</p>`;
+                    multipleChoiceQuestions.innerHTML = `<p class="text-red-500">Error al generar preguntas de opción múltiple.</p>`;
+                    criticalReadingQuestions.innerHTML = `<p class="text-red-500">Error al generar preguntas de lectura crítica.</p>`;
                     showStatusMessage('Error al generar preguntas.', true);
                 } finally {
                     loadingQuestions.classList.add('hidden');
@@ -988,6 +1074,7 @@
             currentIndex = 0;
             updateReadingDisplay('');
             criticalReadingQuestionsContainer.style.display = 'none';
+            multipleChoiceQuestions.innerHTML = '';
             criticalReadingQuestions.innerHTML = '';
             showStatusMessage("Texto borrado.");
         };
