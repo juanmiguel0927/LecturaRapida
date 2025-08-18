@@ -682,7 +682,15 @@
             let chatHistory = [];
             chatHistory.push({ role: "user", parts: [{ text: prompt }] });
             const payload = { contents: chatHistory };
-            const apiKey = "";
+            
+            // ====================================================================================
+            // INSTRUCCIONES IMPORTANTES:
+            // Pega tu clave de API personal de Google AI Studio en la línea de abajo,
+            // entre las comillas. Si el código está en un entorno web como GitHub Pages,
+            // esta clave es necesaria para que funcione la generación de preguntas.
+            // ====================================================================================
+            const apiKey = "TU_CLAVE_AQUI";
+
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
             // Exponential backoff for API calls
