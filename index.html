@@ -20,1166 +20,1217 @@
             --input-bg-color: #ffffff;
             --input-text-color: #333333;
         }
-
-        /* Dark Mode */
-        body.dark-mode {
-            --text-color: #e5e7eb;
+        
+        /* Theme classes */
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+            color: var(--text-color); /* The main body text color is now separate from the reading area color */
+        }
+        .light {
+            --bg-color: #f3f4f6;
+            --text-color: #1f2937;
+            --border-color: #e5e7eb;
+            --input-bg-color: #ffffff;
+            --input-text-color: #333333;
+        }
+        .dark {
             --bg-color: #1f2937;
-            --border-color: #4b5563;
+            --highlight-color: #a16207; /* Darker highlight for dark mode */
+            --text-color: #e5e7eb;
+            --border-color: #374151;
             --input-bg-color: #374151;
             --input-text-color: #e5e7eb;
         }
-        
-        /* Sepia Mode */
-        body.sepia-mode {
-            --text-color: #4b372f;
-            --bg-color: #f4ecd8;
-            --border-color: #d1b8a5;
-            --input-bg-color: #fef8e7;
-            --input-text-color: #4b372f;
+        .sepia {
+            --bg-color: #fbf0d9;
+            --highlight-color: #c9b48c;
+            --text-color: #5b4636;
+            --border-color: #e0d4bc;
+            --input-bg-color: #f2eadc;
+            --input-text-color: #5b4636;
         }
         
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            transition: background-color 0.3s, color 0.3s;
-        }
+        /* Font classes */
+        .font-inter { font-family: 'Inter', sans-serif; }
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .font-mono { font-family: 'Fira Code', monospace; }
 
-        .highlight-text {
-            color: var(--highlight-color);
-        }
+        /* General UI improvements using CSS variables */
+        .bg-card { background-color: var(--input-bg-color); }
+        .border-theme { border-color: var(--border-color); }
+        .text-theme { color: var(--text-color); }
+        #text-input, select, .p-8 { background-color: var(--input-bg-color); color: var(--input-text-color); border-color: var(--border-color); }
 
-        .reading-area {
-            font-size: 1.5rem; /* Base font size for readability */
-            line-height: 1.6;
+        /* Reading area specific styles */
+        #reading-area {
+            position: relative;
         }
-
-        .highlight-mode .word.highlighted {
-            background-color: var(--highlight-color);
+        #reading-area .word {
+            transition: all 0.2s ease-in-out;
             border-radius: 0.25rem;
             padding: 0 0.1rem;
-            transition: background-color 0.1s ease-in-out;
+            cursor: pointer;
         }
 
-        .highlight-mode .word.underline {
+        /* Styles for different highlight modes */
+        #reading-area.highlight-background .word.highlighted {
+            background-color: var(--highlight-color);
+            padding: 0 0.2rem;
+        }
+        #reading-area.highlight-underline .word.highlighted {
             text-decoration: underline;
             text-decoration-color: var(--highlight-color);
-            text-decoration-thickness: 2px;
+            text-underline-offset: 4px;
+        }
+        #reading-area.highlight-bold-orp .word.highlighted {
+            font-weight: bold;
+        }
+        #reading-area.highlight-bold-orp .word b {
+            font-weight: 800;
+            text-decoration: underline;
+            text-underline-offset: 4px;
+            text-decoration-color: var(--highlight-color);
         }
 
-        .highlight-mode .word.bold {
-            font-weight: 700;
-        }
-
-        .one-word-mode {
+        /* Single word mode styles */
+        #reading-area.single-word-mode {
+            display: flex;
+            justify-content: center;
+            align-items: center;
             text-align: center;
-        }
-
-        .one-word-mode .word-display {
+            font-weight: bold;
             font-size: 3rem;
-            font-weight: 600;
-            white-space: pre; /* Preserva los espacios en blanco para mantener la separación entre palabras */
-            transition: color 0.1s ease-in-out;
+            height: 10rem;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .single-word-display {
+            font-weight: 800;
         }
         
-        /* Custom scrollbar styles */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-
-        .quiz-option.correct {
-            background-color: #d1fae5; /* green-100 */
-            border-color: #34d399; /* green-400 */
+        .gaze-marker {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 2px;
+            height: 100%;
+            background-color: #ef4444; /* red-500 */
+            z-index: 10;
+            transform: translateX(-50%);
+            pointer-events: none; /* Ignore mouse events */
         }
         
-        .quiz-option.incorrect {
-            background-color: #fee2e2; /* red-100 */
-            border-color: #f87171; /* red-400 */
+        /* General layout adjustments for smaller screens */
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            padding: 1rem;
+            box-sizing: border-box;
+            font-size: 1rem; /* Increased base font size */
         }
 
-        body.dark-mode .quiz-option.correct {
-            background-color: #064e3b; /* green-900 */
-            border-color: #34d399; /* green-400 */
+        .bg-card {
+            height: auto;
+            max-width: 100%;
+            overflow-y: auto;
+        }
+
+        #status-message-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            z-index: 1000;
+        }
+
+        .status-show {
+            opacity: 1;
         }
         
-        body.dark-mode .quiz-option.incorrect {
-            background-color: #7f1d1d; /* red-900 */
-            border-color: #f87171; /* red-400 */
+        /* Responsive adjustments for controls */
+        @media (max-width: 640px) {
+            body {
+                padding: 0.5rem;
+                font-size: 0.875rem; /* Slightly smaller on very small screens */
+            }
+            .p-4 { padding: 0.5rem; }
+            .md\:p-8 { padding: 1rem; }
+            .text-xl { font-size: 1.25rem; }
+            .text-3xl { font-size: 1.75rem; }
+            .text-sm { font-size: 0.875rem; }
+            .text-xs { font-size: 0.75rem; }
+            .py-2 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+            .py-3 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+            .px-4 { padding-left: 0.5rem; padding-right: 0.5rem; }
+            .px-6 { padding-left: 1rem; padding-right: 1rem; }
+            .h-20 { height: 6rem; }
+
+            .grid-cols-3 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+             .gap-4 { gap: 0.5rem; }
+            .md\:w-1\/3 {
+                width: 100%;
+            }
         }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800 font-inter">
-    <div class="container mx-auto p-4 md:p-8 flex flex-col items-center">
-        <!-- Título y descripción -->
-        <header class="text-center mb-6">
-            <h1 class="text-4xl font-bold font-playfair mb-2">Lectura Rápida</h1>
-            <p class="text-lg text-gray-600 dark:text-gray-400">Mejora tu velocidad de lectura y comprensión.</p>
-        </header>
+<body class="light flex flex-col items-center justify-center min-h-screen p-4" style="background-color: var(--bg-color);">
 
-        <!-- Contenedor principal de la aplicación -->
-        <div class="bg-white dark:bg-gray-700 shadow-xl rounded-2xl p-6 md:p-10 w-full max-w-5xl transition-colors duration-300">
-            <!-- Barra de progreso de lectura -->
-            <div id="progress-container" class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-full mb-4">
-                <div id="progress-bar" class="h-2 bg-blue-500 rounded-full transition-all duration-100 ease-linear" style="width: 0%;"></div>
+    <!-- Status Message Box -->
+    <div id="status-message-box" class="bg-blue-500 text-white font-semibold"></div>
+
+    <div class="bg-card rounded-2xl shadow-xl p-4 md:p-8 max-w-4xl w-full border border-theme">
+        <div class="flex flex-col md:flex-row items-center justify-between mb-4">
+            <h1 class="text-xl md:text-3xl font-bold mb-2 md:mb-0">Lectura Rápida</h1>
+            <div class="flex items-center gap-2 md:gap-4">
+                <button id="save-button" class="bg-blue-500 text-white font-semibold py-2 px-3 rounded-xl hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 shadow-md text-xs md:text-sm">
+                    Guardar Sesión
+                </button>
+                <button id="load-button" class="bg-gray-500 text-white font-semibold py-2 px-3 rounded-xl hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-200 shadow-md text-xs md:text-sm">
+                    Cargar Sesión
+                </button>
             </div>
-
-            <!-- Controles de lectura y estadísticas -->
-            <div class="flex flex-col md:flex-row justify-between items-center mb-4">
-                <div class="flex items-center space-x-2 text-sm md:text-base">
-                    <span id="words-read" class="font-semibold text-blue-600 dark:text-blue-400">0</span>
-                    <span class="text-gray-500 dark:text-gray-400">palabras leídas de</span>
-                    <span id="total-words" class="font-semibold text-blue-600 dark:text-blue-400">0</span>
-                </div>
-                <div class="flex items-center space-x-4 mt-2 md:mt-0">
-                    <div id="elapsed-time" class="text-sm md:text-base text-gray-500 dark:text-gray-400">Tiempo: 00:00</div>
-                    <div id="remaining-time" class="text-sm md:text-base text-gray-500 dark:text-gray-400">Restante: 00:00</div>
-                </div>
-            </div>
-
-            <!-- Área de visualización del texto de lectura -->
-            <div id="reading-display" class="reading-area text-gray-800 dark:text-gray-200 font-inter text-justify transition-all duration-300 overflow-y-auto max-h-[400px] mb-4 p-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600">
-                <div id="reading-text-highlight" class="highlight-mode"></div>
-                <div id="reading-text-one-word" class="one-word-mode hidden">
-                    <span id="word-display" class="word-display"></span>
-                </div>
-            </div>
-
-            <!-- Panel de Controles -->
-            <div class="flex flex-wrap items-center justify-center md:justify-between space-y-4 md:space-y-0 md:space-x-4 mb-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                <!-- Controles de lectura (Play/Pause, etc) -->
-                <div class="flex items-center space-x-2">
-                    <button id="prev-btn" class="p-2 text-gray-600 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200" title="Palabra Anterior (←)">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </button>
-                    <button id="play-pause-btn" class="p-4 text-white bg-blue-500 rounded-full shadow-lg hover:bg-blue-600 transition-colors duration-200" title="Iniciar/Pausar (Espacio)">
-                        <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
-                        </svg>
-                        <svg id="pause-icon" xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 hidden" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-                        </svg>
-                    </button>
-                    <button id="next-btn" class="p-2 text-gray-600 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200" title="Siguiente Palabra (→)">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </button>
-                    <button id="stop-btn" class="p-2 text-gray-600 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200" title="Detener Lectura">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10h6v6h-6z" />
-                        </svg>
-                    </button>
-                </div>
-
-                <!-- Velocidad de lectura (WPM) -->
-                <div class="w-full md:w-auto flex items-center justify-center space-x-2 mt-4 md:mt-0">
-                    <label for="wpm-slider" class="text-sm font-medium whitespace-nowrap">WPM:</label>
-                    <input type="range" id="wpm-slider" min="100" max="1000" value="300" class="w-24 md:w-32 cursor-pointer">
-                    <span id="wpm-value" class="font-semibold text-blue-600 dark:text-blue-400 min-w-[3rem]">300</span>
+        </div>
+        
+        <!-- Progress Bar -->
+        <div class="w-full bg-gray-200 rounded-full h-1.5 mb-2">
+            <div id="progress-bar" class="bg-blue-600 h-1.5 rounded-full transition-all duration-300 ease-in-out" style="width: 0%;"></div>
+        </div>
+        
+        <!-- Main Application Container -->
+        <div class="flex flex-col items-center w-full">
+            
+            <!-- Text Input and File Upload -->
+            <div id="text-input-section" class="flex flex-col md:flex-row w-full gap-2 mb-2">
+                <textarea id="text-input" class="flex-1 h-20 md:h-28 p-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200" placeholder="Pega aquí el texto o haz clic en 'Cargar Archivo' para un .txt o .pdf."></textarea>
+                <div class="flex flex-col gap-2 w-full md:w-auto">
+                    <label id="file-input-label-text" for="file-input-text" class="bg-indigo-500 text-white font-semibold py-2 px-3 rounded-xl hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200 shadow-md cursor-pointer text-center whitespace-nowrap text-xs md:text-sm">
+                        Cargar Archivo
+                    </label>
+                    <input type="file" id="file-input-text" accept=".txt, .pdf" class="hidden">
+                    <label id="file-input-label-image" for="file-input-image" class="bg-indigo-500 text-white font-semibold py-2 px-3 rounded-xl hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200 shadow-md cursor-pointer text-center whitespace-nowrap text-xs md:text-sm">
+                        Extraer texto de Imagen
+                    </label>
+                    <input type="file" id="file-input-image" accept=".jpg, .jpeg, .png, .webp" class="hidden">
                 </div>
             </div>
 
-            <!-- Panel de opciones y ajustes -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                <!-- Selector de Modo de Lectura -->
-                <div class="flex items-center space-x-2">
-                    <label for="mode-select" class="text-sm font-medium min-w-[5rem]">Modo:</label>
-                    <select id="mode-select" class="flex-1 p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
-                        <option value="highlight">Resaltado</option>
-                        <option value="one-word">Una palabra a la vez</option>
-                    </select>
+            <!-- Practice Mode Button -->
+            <div class="w-full mb-2">
+                 <button id="practice-button" class="bg-purple-500 text-white font-semibold py-2 px-3 rounded-xl hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200 shadow-md w-full text-xs md:text-sm">
+                    Modo Práctica
+                </button>
+            </div>
+            
+            <!-- Critical Reading Prompts Section -->
+            <div id="critical-reading-questions-container" class="w-full mb-2 p-3 rounded-xl border border-theme" style="display: none;">
+                <!-- New: separate sections for multiple choice and free-form questions -->
+                <div id="multiple-choice-section" class="mb-4">
+                    <h3 class="font-bold text-sm md:text-lg mb-1">Preguntas de Comprensión (Opción Múltiple)</h3>
+                    <div id="multiple-choice-questions" class="text-sm space-y-2">
+                        <!-- Multiple choice questions will be inserted here -->
+                    </div>
                 </div>
-
-                <!-- Controles de Resaltado (visibles solo en modo Resaltado) -->
-                <div id="highlight-controls" class="flex items-center space-x-2">
-                    <label for="highlight-style-select" class="text-sm font-medium min-w-[5rem]">Resaltado:</label>
-                    <select id="highlight-style-select" class="flex-1 p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
-                        <option value="background">Fondo</option>
-                        <option value="underline">Subrayado</option>
-                        <option value="bold">Negrita (ORP)</option>
-                    </select>
+                
+                <div id="critical-reading-section">
+                    <h3 class="font-bold text-sm md:text-lg mb-1">Preguntas de Lectura Crítica</h3>
+                    <div id="critical-reading-questions" class="text-sm space-y-2">
+                        <!-- Critical reading questions will be inserted here -->
+                    </div>
                 </div>
+                <div id="loading-questions" class="hidden text-center text-gray-500 italic text-sm">
+                    Generando preguntas...
+                </div>
+            </div>
+            <div class="w-full mb-2">
+                 <button id="generate-questions-button" class="bg-teal-500 text-white font-semibold py-2 px-3 rounded-xl hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-200 shadow-md w-full text-xs md:text-sm">
+                    Generar Preguntas
+                </button>
+            </div>
+            
 
-                <!-- Selector de Tema -->
-                <div class="flex items-center space-x-2">
-                    <label for="theme-select" class="text-sm font-medium min-w-[5rem]">Tema:</label>
-                    <select id="theme-select" class="flex-1 p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+            <!-- Reading Display Area -->
+            <div id="reading-display-container" class="relative w-full mb-2">
+                <div id="reading-area" class="bg-card w-full h-24 md:h-40 p-2 md:p-4 border rounded-xl overflow-y-auto focus:outline-none border-theme">
+                    <span id="reading-intro" class="text-center italic text-gray-600">El texto de tu lectura aparecerá aquí.</span>
+                </div>
+            </div>
+            
+            <!-- Word Counter and Stats -->
+            <div class="w-full flex flex-col md:flex-row justify-between mb-2 text-xs md:text-sm text-gray-600">
+                <div id="word-counter" class="mb-1 md:mb-0"></div>
+                <div id="stats-display" class="mb-1 md:mb-0 text-right"></div>
+            </div>
+
+            <!-- Application Controls -->
+            <div id="main-controls-container" class="w-full grid grid-cols-3 gap-2 mb-2">
+                <button id="back-button" class="bg-gray-400 text-white font-semibold py-2 px-3 rounded-xl hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-400 transition duration-200 shadow-md flex items-center justify-center text-xs md:text-sm">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    Atrás
+                </button>
+                <button id="start-button" class="bg-green-500 text-white font-semibold py-2 px-3 rounded-xl hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200 shadow-md flex items-center justify-center text-xs md:text-sm">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.189l-3.296 2.083a1 1 0 01-1.455-.788V9.124a1 1 0 011.455-.788l3.296 2.083a1 1 0 010 1.57z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Iniciar
+                </button>
+                <button id="pause-button" class="bg-yellow-500 text-white font-semibold py-2 px-3 rounded-xl hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 transition duration-200 shadow-md flex items-center justify-center text-xs md:text-sm">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m4-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Pausar
+                </button>
+                <button id="stop-button" class="bg-red-500 text-white font-semibold py-2 px-3 rounded-xl hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition duration-200 shadow-md flex items-center justify-center text-xs md:text-sm">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Parar
+                </button>
+                <button id="next-button" class="bg-gray-400 text-white font-semibold py-2 px-3 rounded-xl hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-400 transition duration-200 shadow-md flex items-center justify-center text-xs md:text-sm">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    Adelante
+                </button>
+                 <button id="clear-button" class="bg-red-700 text-white font-semibold py-2 px-3 rounded-xl hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-700 transition duration-200 shadow-md flex items-center justify-center text-xs md:text-sm">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.013 21H7.987a2 2 0 01-1.92-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    Borrar
+                </button>
+            </div>
+            
+            <!-- Customization Controls Row 1 -->
+            <div id="custom-controls-row-1" class="w-full flex flex-col md:flex-row items-center gap-2">
+                <!-- WPM Slider -->
+                <div class="flex items-center gap-1 w-full md:w-1/3">
+                    <label for="wpm-slider" class="text-xs font-medium whitespace-nowrap">WPM:</label>
+                    <span id="wpm-value" class="w-8 text-center font-bold">300</span>
+                    <input type="range" id="wpm-slider" min="100" max="1000" value="300" step="10" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                </div>
+                
+                <!-- Theme Select -->
+                <div class="flex items-center gap-1 w-full md:w-1/3">
+                    <label for="theme-select" class="text-xs font-medium whitespace-nowrap">Tema:</label>
+                    <select id="theme-select" class="w-full p-1 rounded-lg border text-xs">
                         <option value="light">Claro</option>
                         <option value="dark">Oscuro</option>
                         <option value="sepia">Sepia</option>
                     </select>
                 </div>
+                
+                <!-- Font Select -->
+                <div class="flex items-center gap-1 w-full md:w-1/3">
+                    <label for="font-select" class="text-xs font-medium whitespace-nowrap">Fuente:</label>
+                    <select id="font-select" class="w-full p-1 rounded-lg border text-xs">
+                        <option value="inter">Inter</option>
+                        <option value="serif">Serif</option>
+                        <option value="mono">Mono</option>
+                    </select>
+                </div>
+            </div>
 
-                <!-- Selector de Fuente -->
-                <div class="flex items-center space-x-2">
-                    <label for="font-select" class="text-sm font-medium min-w-[5rem]">Fuente:</label>
-                    <select id="font-select" class="flex-1 p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
-                        <option value="inter">Inter (Sans-serif)</option>
-                        <option value="playfair">Playfair Display (Serif)</option>
-                        <option value="fira-code">Fira Code (Mono)</option>
+            <!-- Customization Controls Row 2 -->
+            <div id="custom-controls-row-2" class="w-full flex flex-col md:flex-row items-center gap-2 mt-2">
+                <!-- Font Size Slider -->
+                <div class="flex items-center gap-1 w-full md:w-1/2">
+                    <label for="font-size-slider" class="text-xs font-medium whitespace-nowrap">Tamaño:</label>
+                    <span id="font-size-value" class="w-8 text-center font-bold">14</span>
+                    <input type="range" id="font-size-slider" min="12" max="32" value="14" step="1" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                </div>
+                
+                <!-- Mode Select -->
+                <div class="flex items-center gap-1 w-full md:w-1/2">
+                    <label for="mode-select" class="text-xs font-medium whitespace-nowrap">Modo:</label>
+                    <select id="mode-select" class="w-full p-1 rounded-lg border text-xs">
+                        <option value="highlight">Resaltado</option>
+                        <option value="single-word">Una palabra a la vez</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Customization Controls Row 3 -->
+            <div id="highlight-controls" class="w-full flex flex-col md:flex-row items-center gap-2 mt-2">
+                <!-- Highlight Style Select -->
+                <div class="flex items-center gap-1 w-full md:w-1/2">
+                    <label for="highlight-style-select" class="text-xs font-medium whitespace-nowrap">Estilo:</label>
+                    <select id="highlight-style-select" class="w-full p-1 rounded-lg border text-xs">
+                        <option value="highlight-background">Fondo</option>
+                        <option value="highlight-underline">Subrayado</option>
+                        <option value="highlight-bold-orp">Negrita (ORP)</option>
                     </select>
                 </div>
 
-                <!-- Tamaño de la Fuente -->
-                <div class="flex items-center space-x-2">
-                    <label for="font-size-slider" class="text-sm font-medium whitespace-nowrap min-w-[5rem]">Tamaño:</label>
-                    <input type="range" id="font-size-slider" min="12" max="36" value="24" class="flex-1 cursor-pointer">
-                    <span id="font-size-value" class="font-semibold text-blue-600 dark:text-blue-400">24px</span>
+                <!-- Words per Chunk Slider -->
+                <div class="flex items-center gap-1 w-full md:w-1/2">
+                    <label for="words-per-chunk-slider" class="text-xs font-medium whitespace-nowrap">Grupo:</label>
+                    <span id="words-per-chunk-value" class="w-8 text-center font-bold">1</span>
+                    <input type="range" id="words-per-chunk-slider" min="1" max="5" value="1" step="1" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer">
                 </div>
             </div>
 
-            <!-- Panel de entrada de texto y carga de archivos -->
-            <div class="mt-6 p-4 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-800">
-                <div class="flex flex-col md:flex-row md:justify-between items-center space-y-4 md:space-y-0 md:space-x-4 mb-4">
-                    <h3 class="text-lg font-semibold">Cargar Contenido</h3>
-                    <div class="flex items-center space-x-2">
-                        <button id="paste-btn" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors duration-200">Pegar Texto</button>
-                        <label for="file-input" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors duration-200 cursor-pointer">
-                            Subir Archivo
-                            <input type="file" id="file-input" class="hidden">
-                        </label>
-                        <button id="paste-practice-btn" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-200">Modo Práctica</button>
-                    </div>
+            <!-- New Control for Gaze Marker -->
+            <div class="w-full flex items-center justify-center gap-1 mt-2">
+                <input type="checkbox" id="gaze-marker-checkbox" class="h-3 w-3 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                <label for="gaze-marker-checkbox" class="text-xs font-medium">Usar Marcador de Gaze</label>
+            </div>
+            
+            <!-- Highlight and Font Color Pickers -->
+            <div class="w-full flex flex-col md:flex-row items-center justify-center gap-4 mt-2">
+                <div class="flex items-center gap-1">
+                    <label for="highlight-color-picker" class="text-xs font-medium whitespace-nowrap">Color Resalte:</label>
+                    <input type="color" id="highlight-color-picker" value="#fde68a" class="w-12 h-8 rounded-lg border border-gray-300 cursor-pointer">
                 </div>
-
-                <textarea id="text-input" rows="8" class="w-full p-4 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 resize-y focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Pega el texto aquí..."></textarea>
-                <p id="status-message" class="mt-2 text-sm text-center text-gray-500 dark:text-gray-400"></p>
-                <div id="loading-spinner" class="mt-2 text-center hidden">
-                    <div class="w-8 h-8 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto"></div>
+                <!-- NEW: Font Color Picker -->
+                <div class="flex items-center gap-1">
+                    <label for="font-color-picker" class="text-xs font-medium whitespace-nowrap">Color Fuente:</label>
+                    <input type="color" id="font-color-picker" value="#1f2937" class="w-12 h-8 rounded-lg border border-gray-300 cursor-pointer">
                 </div>
             </div>
 
-            <!-- Panel de Funcionalidades Avanzadas -->
-            <div class="mt-6 p-4 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-800">
-                <h3 class="text-lg font-semibold mb-2">Funcionalidades Avanzadas</h3>
-                <div class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
-                    <button id="generate-mcq-btn" class="w-full md:w-auto px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200">Generar Cuestionario (Opción Múltiple)</button>
-                    <button id="generate-critical-btn" class="w-full md:w-auto px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors duration-200">Generar Preguntas Críticas</button>
-                    <button id="save-session-btn" class="w-full md:w-auto px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors duration-200">Guardar Sesión</button>
-                    <button id="load-session-btn" class="w-full md:w-auto px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors duration-200">Cargar Sesión</button>
-                </div>
-                <div id="questions-display" class="mt-4 p-4 rounded-lg bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hidden">
-                    <h4 id="quiz-title" class="text-md font-semibold mb-2">Cuestionario</h4>
-                    <div id="questions-container"></div>
-                    <p id="quiz-score" class="text-lg font-bold mt-4 hidden"></p>
-                    <button id="submit-quiz-btn" class="mt-4 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-200 w-full hidden">Autoevaluar</button>
-                </div>
+            <div class="mt-4 text-xs text-center text-gray-500">
+                <p>Creador: Juan Miguel Ríos Redondo</p>
             </div>
 
         </div>
     </div>
-    
-    <!-- Modal para mensajes y alertas -->
-    <div id="message-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center p-4 z-50">
-        <div class="bg-white dark:bg-gray-700 rounded-lg p-6 shadow-xl w-full max-w-md">
-            <h3 id="modal-title" class="text-lg font-bold mb-2 text-gray-900 dark:text-gray-100"></h3>
-            <p id="modal-message" class="text-gray-600 dark:text-gray-300 mb-4"></p>
-            <div class="flex justify-end">
-                <button id="modal-ok-btn" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200">Aceptar</button>
-            </div>
-        </div>
-    </div>
-    
+
     <script>
-        // Use a placeholder API key. The Canvas environment will replace this with a valid key.
-        const API_KEY = "";
-        
-        // ** Global Variables **
-        let isReading = false;
-        let readingInterval;
-        let words = [];
-        let currentIndex = 0;
-        let readingStartTime;
-        let timeElapsed = 0;
-        let saveInterval;
-        let lastKnownPosition = 0; // For session management
-        let quizQuestions = []; // To store the generated quiz questions
-        
-        // ** DOM Elements **
-        const readingDisplay = document.getElementById('reading-display');
-        const readingTextHighlight = document.getElementById('reading-text-highlight');
-        const readingTextOneWord = document.getElementById('reading-text-one-word');
-        const wordDisplay = document.getElementById('word-display');
+        // Se usa un enlace absoluto para el worker de PDF.js para evitar errores de carga en GitHub Pages
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js`;
+
+        // ========================
+        // DOM Element References
+        // ========================
         const textInput = document.getElementById('text-input');
+        const readingArea = document.getElementById('reading-area');
+        const startButton = document.getElementById('start-button');
+        const pauseButton = document.getElementById('pause-button');
+        const stopButton = document.getElementById('stop-button');
         const wpmSlider = document.getElementById('wpm-slider');
-        const wpmValue = document.getElementById('wpm-value');
-        const playPauseBtn = document.getElementById('play-pause-btn');
-        const stopBtn = document.getElementById('stop-btn');
-        const prevBtn = document.getElementById('prev-btn');
-        const nextBtn = document.getElementById('next-btn');
+        const wpmValueSpan = document.getElementById('wpm-value');
         const progressBar = document.getElementById('progress-bar');
-        const wordsReadSpan = document.getElementById('words-read');
-        const totalWordsSpan = document.getElementById('total-words');
-        const elapsedTimeDiv = document.getElementById('elapsed-time');
-        const remainingTimeDiv = document.getElementById('remaining-time');
-        const modeSelect = document.getElementById('mode-select');
-        const highlightControls = document.getElementById('highlight-controls');
-        const highlightStyleSelect = document.getElementById('highlight-style-select');
         const themeSelect = document.getElementById('theme-select');
         const fontSelect = document.getElementById('font-select');
         const fontSizeSlider = document.getElementById('font-size-slider');
-        const fontSizeValue = document.getElementById('font-size-value');
-        const fileInput = document.getElementById('file-input');
-        const pasteBtn = document.getElementById('paste-btn');
-        const pastePracticeBtn = document.getElementById('paste-practice-btn');
-        const statusMessage = document.getElementById('status-message');
-        const loadingSpinner = document.getElementById('loading-spinner');
-        const generateMcqBtn = document.getElementById('generate-mcq-btn'); // Renamed button
-        const generateCriticalBtn = document.getElementById('generate-critical-btn'); // New button
-        const questionsDisplay = document.getElementById('questions-display');
-        const quizTitle = document.getElementById('quiz-title');
-        const questionsContainer = document.getElementById('questions-container');
-        const submitQuizBtn = document.getElementById('submit-quiz-btn');
-        const quizScore = document.getElementById('quiz-score');
-        const saveSessionBtn = document.getElementById('save-session-btn');
-        const loadSessionBtn = document.getElementById('load-session-btn');
-        const messageModal = document.getElementById('message-modal');
-        const modalTitle = document.getElementById('modal-title');
-        const modalMessage = document.getElementById('modal-message');
-        const modalOkBtn = document.getElementById('modal-ok-btn');
-
-        // ** Helper Functions **
-
-        /**
-         * Shows a message modal with a title and message.
-         * @param {string} title The title of the modal.
-         * @param {string} message The message to display.
-         */
-        function showMessageModal(title, message) {
-            modalTitle.textContent = title;
-            modalMessage.textContent = message;
-            messageModal.classList.remove('hidden');
-            messageModal.classList.add('flex');
-        }
-
-        /**
-         * Hides the message modal.
-         */
-        function hideMessageModal() {
-            messageModal.classList.add('hidden');
-            messageModal.classList.remove('flex');
-        }
+        const fontSizeValueSpan = document.getElementById('font-size-value');
+        const saveButton = document.getElementById('save-button');
+        const loadButton = document.getElementById('load-button');
+        const wordCounter = document.getElementById('word-counter');
+        const statsDisplay = document.getElementById('stats-display');
+        const fileInputText = document.getElementById('file-input-text');
+        const fileInputImage = document.getElementById('file-input-image');
+        const practiceButton = document.getElementById('practice-button');
+        const modeSelect = document.getElementById('mode-select');
+        const statusMessageBox = document.getElementById('status-message-box');
+        const highlightColorPicker = document.getElementById('highlight-color-picker');
         
-        /**
-         * Clears all words from the display and resets the state.
-         */
-        function clearWords() {
-            words = [];
-            currentIndex = 0;
-            updateUI();
-        }
+        // New DOM references for highlight improvements
+        const highlightStyleSelect = document.getElementById('highlight-style-select');
+        const wordsPerChunkSlider = document.getElementById('words-per-chunk-slider');
+        const wordsPerChunkValueSpan = document.getElementById('words-per-chunk-value');
+        const highlightControls = document.getElementById('highlight-controls');
+        const gazeMarkerCheckbox = document.getElementById('gaze-marker-checkbox');
 
-        /**
-         * Updates the UI elements based on the current reading state.
-         */
-        function updateUI() {
-            updateProgressBar();
-            updateStats();
-            updatePlayPauseButton();
-            // Show/hide reading modes
-            if (modeSelect.value === 'highlight') {
-                readingTextHighlight.classList.remove('hidden');
-                readingTextOneWord.classList.add('hidden');
-            } else {
-                readingTextHighlight.classList.add('hidden');
-                readingTextOneWord.classList.remove('hidden');
-            }
-        }
-        
-        /**
-         * Updates the play/pause button icon.
-         */
-        function updatePlayPauseButton() {
-            const playIcon = playPauseBtn.querySelector('#play-icon');
-            const pauseIcon = playPauseBtn.querySelector('#pause-icon');
-            if (isReading) {
-                playIcon.classList.add('hidden');
-                pauseIcon.classList.remove('hidden');
-            } else {
-                playIcon.classList.remove('hidden');
-                pauseIcon.classList.add('hidden');
-            }
-        }
-        
-        /**
-         * Displays the current word based on the reading mode.
-         * @param {number} index The index of the current word.
-         */
-        function displayCurrentWord(index) {
-            if (modeSelect.value === 'highlight') {
-                highlightCurrentWord(index);
-                scrollToCurrentWord(index);
-            } else {
-                displayOneWord(index);
-            }
-        }
+        // New DOM references for critical reading questions
+        const generateQuestionsButton = document.getElementById('generate-questions-button');
+        const criticalReadingQuestionsContainer = document.getElementById('critical-reading-questions-container');
+        // New DOM references for the updated question sections
+        const multipleChoiceQuestions = document.getElementById('multiple-choice-questions');
+        const criticalReadingQuestions = document.getElementById('critical-reading-questions');
+        const loadingQuestions = document.getElementById('loading-questions');
 
-        /**
-         * Displays the current word in "one word at a time" mode.
-         * @param {number} index The index of the current word.
-         */
-        function displayOneWord(index) {
-            if (words.length > 0) {
-                const word = words[index];
-                if (word) {
-                    // Check if the word is punctuation
-                    const isPunctuation = word.match(/^[.,!?;:]+$/);
-                    // Adjust spacing for punctuation
-                    wordDisplay.textContent = isPunctuation ? `${word}` : `${word} `;
+        // New DOM references for navigation buttons
+        const backButton = document.getElementById('back-button');
+        const nextButton = document.getElementById('next-button');
+
+        // New DOM reference for clear button
+        const clearButton = document.getElementById('clear-button');
+
+        // NEW: DOM reference for font color picker
+        const fontColorPicker = document.getElementById('font-color-picker');
+
+        // ========================
+        // State Variables
+        // ========================
+        let words = [];
+        let currentIndex = 0;
+        let timer = null;
+        let isPaused = false;
+        let isReading = false;
+        let startTime = 0;
+        const punctuationPauseMultiplier = {
+            ',': 0.5,
+            ';': 0.7,
+            ':': 0.7,
+            '.': 1.0,
+            '?': 1.0,
+            '!': 1.0
+        };
+
+        // ========================
+        // Helper Functions for ORP
+        // ========================
+
+        // Determines the number of letters to bold for Optimal Recognition Points (ORP)
+        const getOrpLength = (word) => {
+            const cleanWord = word.replace(/[.,?!;:]/g, '');
+            if (cleanWord.length <= 2) return cleanWord.length;
+            if (cleanWord.length <= 5) return 2;
+            return 3;
+        };
+
+        // Applies ORP formatting to a word
+        const getOrpWord = (word) => {
+            const orpLength = getOrpLength(word);
+            const firstPart = word.substring(0, orpLength);
+            const restOfWord = word.substring(orpLength);
+            return `<b>${firstPart}</b>${restOfWord}`;
+        };
+
+        // ========================
+        // Core Functions
+        // ========================
+
+        // Displays a temporary status message
+        const showStatusMessage = (message, isError = false) => {
+            statusMessageBox.textContent = message;
+            statusMessageBox.classList.add('status-show');
+            if (isError) {
+                statusMessageBox.classList.remove('bg-blue-500');
+                statusMessageBox.classList.add('bg-red-500');
+            } else {
+                statusMessageBox.classList.remove('bg-red-500');
+                statusMessageBox.classList.add('bg-blue-500');
+            }
+            setTimeout(() => {
+                statusMessageBox.classList.remove('status-show');
+            }, 3000);
+        };
+
+        // Saves the current reading session to local storage
+        const saveSession = () => {
+            if (words.length === 0) {
+                showStatusMessage('No hay texto para guardar.', true);
+                return;
+            }
+            try {
+                const sessionData = {
+                    text: textInput.value,
+                    progress: currentIndex,
+                    theme: themeSelect.value,
+                    font: fontSelect.value,
+                    fontSize: fontSizeSlider.value,
+                    mode: modeSelect.value,
+                    highlightStyle: highlightStyleSelect.value,
+                    highlightColor: highlightColorPicker.value,
+                    fontColor: fontColorPicker.value,
+                    wordsPerChunk: wordsPerChunkSlider.value,
+                    timestamp: new Date().toISOString()
+                };
+                localStorage.setItem('speedReadingSession', JSON.stringify(sessionData));
+                showStatusMessage('Sesión guardada exitosamente.');
+            } catch (error) {
+                console.error("Error saving session to localStorage:", error);
+                showStatusMessage('Error al guardar la sesión.', true);
+            }
+        };
+
+        // Loads a saved session from local storage
+        const loadSession = () => {
+            try {
+                const storedSession = localStorage.getItem('speedReadingSession');
+                if (storedSession) {
+                    const data = JSON.parse(storedSession);
+                    textInput.value = data.text;
+                    currentIndex = data.progress;
+                    
+                    // Update UI based on loaded data
+                    themeSelect.value = data.theme || 'light';
+                    fontSelect.value = data.font || 'inter';
+                    fontSizeSlider.value = data.fontSize || '14';
+                    modeSelect.value = data.mode || 'highlight';
+                    highlightStyleSelect.value = data.highlightStyle || 'highlight-background';
+                    highlightColorPicker.value = data.highlightColor || '#fde68a';
+                    // Load and apply font color
+                    fontColorPicker.value = data.fontColor || '#1f2937';
+                    readingArea.style.color = fontColorPicker.value;
+
+                    wordsPerChunkSlider.value = data.wordsPerChunk || '1';
+                    wpmSlider.value = data.wpm || '300';
+                    wpmValueSpan.textContent = wpmSlider.value;
+                    wordsPerChunkValueSpan.textContent = data.wordsPerChunk || '1';
+                    fontSizeValueSpan.textContent = data.fontSize || '14';
+
+                    // Manually trigger change events to apply styling and mode
+                    const themeChangeEvent = new Event('change');
+                    themeSelect.dispatchEvent(themeChangeEvent);
+
+                    const fontChangeEvent = new Event('change');
+                    fontSelect.dispatchEvent(fontChangeEvent);
+
+                    const modeChangeEvent = new Event('change');
+                    modeSelect.dispatchEvent(modeChangeEvent);
+                    
+                    const highlightStyleChangeEvent = new Event('change');
+                    highlightStyleSelect.dispatchEvent(highlightStyleChangeEvent);
+
+                    const highlightColorChangeEvent = new Event('input');
+                    highlightColorPicker.dispatchEvent(highlightColorChangeEvent);
+                    
+                    readingArea.style.fontSize = `${data.fontSize || '14'}px`;
+                    
+                    updateReadingDisplay(textInput.value);
+                    updateWordCounter();
+                    updateProgressBar();
+                    showStatusMessage('Sesión cargada desde el dispositivo.');
+                } else {
+                    showStatusMessage('No se encontró una sesión guardada.', false);
                 }
-            } else {
-                wordDisplay.textContent = '';
+            } catch (error) {
+                console.error("Error loading session from localStorage:", error);
+                showStatusMessage('Error al cargar la sesión.', true);
             }
-        }
+        };
 
-        /**
-         * Highlights the current word in "highlight" mode.
-         * @param {number} index The index of the current word.
-         */
-        function highlightCurrentWord(index) {
-            // Remove previous highlights
-            const highlightedWords = readingTextHighlight.querySelectorAll('.highlighted, .underline, .bold');
-            highlightedWords.forEach(word => {
-                word.classList.remove('highlighted', 'underline', 'bold');
-            });
+        // Loads text from a local file (.txt or .pdf)
+        const loadFile = (file) => {
+            const reader = new FileReader();
             
-            // Add new highlight
-            const currentWord = readingTextHighlight.querySelector(`.word[data-index="${index}"]`);
-            if (currentWord) {
-                if (highlightStyleSelect.value === 'background') {
-                    currentWord.classList.add('highlighted');
-                } else if (highlightStyleSelect.value === 'underline') {
-                    currentWord.classList.add('underline');
-                } else if (highlightStyleSelect.value === 'bold') {
-                    // ORP (Optimal Recognition Point)
-                    const wordText = currentWord.textContent;
-                    const midpoint = Math.floor(wordText.length / 2);
-                    const orpWord = document.createElement('span');
-                    orpWord.innerHTML = `${wordText.substring(0, midpoint)}<span class="font-bold highlight-text">${wordText.charAt(midpoint)}</span>${wordText.substring(midpoint + 1)}`;
-                    currentWord.innerHTML = '';
-                    currentWord.appendChild(orpWord);
-                }
-            }
-        }
-
-        /**
-         * Scrolls the reading area to keep the current word visible.
-         * @param {number} index The index of the current word.
-         */
-        function scrollToCurrentWord(index) {
-            const currentWordElement = readingTextHighlight.querySelector(`.word[data-index="${index}"]`);
-            if (currentWordElement) {
-                const container = readingDisplay;
-                const containerRect = container.getBoundingClientRect();
-                const wordRect = currentWordElement.getBoundingClientRect();
-
-                // If the word is not in view, scroll to it
-                if (wordRect.top < containerRect.top || wordRect.bottom > containerRect.bottom) {
-                    container.scrollTop = currentWordElement.offsetTop - (container.clientHeight / 2) + (wordRect.height / 2);
-                }
-            }
-        }
-        
-        /**
-         * Updates the progress bar based on the current reading position.
-         */
-        function updateProgressBar() {
-            if (words.length > 0) {
-                const progress = (currentIndex / words.length) * 100;
-                progressBar.style.width = `${progress}%`;
-            } else {
-                progressBar.style.width = `0%`;
-            }
-        }
-        
-        /**
-         * Updates the words read and time statistics.
-         */
-        function updateStats() {
-            wordsReadSpan.textContent = currentIndex;
-            totalWordsSpan.textContent = words.length;
-
-            if (isReading) {
-                timeElapsed = (Date.now() - readingStartTime) / 1000;
-            }
-
-            const totalWords = words.length;
-            const wpm = parseInt(wpmSlider.value, 10);
-            const totalReadingTime = (totalWords / wpm) * 60; // in seconds
-            const timeRemaining = totalReadingTime - timeElapsed;
-
-            const formatTime = (seconds) => {
-                const minutes = Math.floor(seconds / 60);
-                const secs = Math.floor(seconds % 60);
-                return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            reader.onloadstart = () => {
+                showStatusMessage("Cargando archivo...");
+                textInput.value = '';
+                stopReading();
             };
             
-            elapsedTimeDiv.textContent = `Tiempo: ${formatTime(timeElapsed)}`;
-            remainingTimeDiv.textContent = `Restante: ${formatTime(timeRemaining > 0 ? timeRemaining : 0)}`;
-        }
-
-        /**
-         * Updates the display with the new text.
-         * @param {string} text The text to display.
-         */
-        function updateReadingDisplay(text) {
-            // Split the text into words and filter out empty strings
-            words = text.split(/\s+/).filter(word => word.length > 0);
-            currentIndex = 0;
+            reader.onerror = () => {
+                showStatusMessage("Error al leer el archivo.", true);
+            };
             
-            // Rebuild the highlight-mode display
-            readingTextHighlight.innerHTML = '';
-            words.forEach((word, index) => {
-                const wordSpan = document.createElement('span');
-                wordSpan.className = 'word inline-block cursor-pointer';
-                wordSpan.dataset.index = index;
-                wordSpan.textContent = word + ' ';
-                readingTextHighlight.appendChild(wordSpan);
-            });
-            
-            updateUI();
-        }
-
-        /**
-         * Starts the reading process.
-         */
-        function startReading() {
-            if (words.length === 0 || isReading) return;
-            isReading = true;
-            readingStartTime = Date.now() - (timeElapsed * 1000); // Resume timer
-            
-            const wpm = parseInt(wpmSlider.value, 10);
-            const intervalTime = (60 / wpm) * 1000;
-
-            readingInterval = setInterval(() => {
-                if (currentIndex < words.length) {
-                    displayCurrentWord(currentIndex);
-                    currentIndex++;
-                    updateUI();
-                } else {
-                    stopReading();
-                    showMessageModal('Lectura Completa', '¡Has terminado de leer el texto!');
-                }
-            }, intervalTime);
-            updatePlayPauseButton();
-        }
-        
-        /**
-         * Pauses the reading process.
-         */
-        function pauseReading() {
-            isReading = false;
-            clearInterval(readingInterval);
-            readingInterval = null;
-            updatePlayPauseButton();
-        }
-        
-        /**
-         * Stops the reading process and resets the state.
-         */
-        function stopReading() {
-            pauseReading();
-            currentIndex = 0;
-            timeElapsed = 0;
-            updateUI();
-            displayCurrentWord(currentIndex);
-            showStatusMessage('Lectura detenida y reiniciada.');
-        }
-
-        /**
-         * Moves to the previous word.
-         */
-        function prevWord() {
-            if (isReading) pauseReading();
-            currentIndex = Math.max(0, currentIndex - 1);
-            displayCurrentWord(currentIndex);
-            updateUI();
-            showStatusMessage(`Retrocediste a la palabra ${currentIndex + 1}.`);
-        }
-
-        /**
-         * Moves to the next word.
-         */
-        function nextWord() {
-            if (isReading) pauseReading();
-            currentIndex = Math.min(words.length - 1, currentIndex + 1);
-            displayCurrentWord(currentIndex);
-            updateUI();
-            showStatusMessage(`Avanzaste a la palabra ${currentIndex + 1}.`);
-        }
-
-        /**
-         * Displays a status message to the user.
-         * @param {string} message The message to show.
-         */
-        function showStatusMessage(message) {
-            statusMessage.textContent = message;
-        }
-        
-        /**
-         * Toggles the loading spinner.
-         * @param {boolean} show Whether to show or hide the spinner.
-         */
-        function toggleLoading(show) {
-            if (show) {
-                loadingSpinner.classList.remove('hidden');
-                textInput.disabled = true;
+            if (file.type === 'text/plain') {
+                reader.onload = (event) => {
+                    textInput.value = event.target.result;
+                    showStatusMessage("Archivo de texto cargado exitosamente.");
+                    updateReadingDisplay(textInput.value);
+                };
+                reader.readAsText(file);
+            } else if (file.type === 'application/pdf') {
+                reader.onload = async (e) => {
+                    try {
+                        const arrayBuffer = e.target.result;
+                        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                        let fullText = '';
+                        
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const textContent = await page.getTextContent();
+                            const pageText = textContent.items.map(item => item.str).join(' ').replace(/-\s*/g, '');
+                            fullText += pageText + ' ';
+                        }
+                        textInput.value = fullText.trim();
+                        showStatusMessage("PDF cargado exitosamente.");
+                        updateReadingDisplay(textInput.value);
+                    } catch (error) {
+                        showStatusMessage("Error al procesar el PDF.", true);
+                        console.error('Error al procesar el PDF:', error);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
             } else {
-                loadingSpinner.classList.add('hidden');
-                textInput.disabled = false;
+                showStatusMessage("Formato de archivo no soportado.", true);
             }
-        }
+        };
+
+        /**
+         * @description Extracts text from an image using the Tesseract.js library.
+         * The function performs OCR directly in the browser, eliminating the need for an external API call.
+         * @param {File} file The image file to process.
+         */
+        const extractTextFromImage = async (file) => {
+            showStatusMessage('Procesando imagen, esto puede tardar unos segundos...');
+            try {
+                const { data: { text } } = await Tesseract.recognize(
+                    file,
+                    'spa', // Set language to Spanish
+                    { logger: m => console.log(m) } // Log progress
+                );
+                
+                if (text && text.trim().length > 0) {
+                    textInput.value = text.trim();
+                    updateReadingDisplay(textInput.value);
+                    showStatusMessage('Texto extraído exitosamente.');
+                } else {
+                    showStatusMessage("No se pudo extraer el texto de la imagen. Intenta con una imagen más clara.", true);
+                }
+            } catch (error) {
+                console.error('Error durante el reconocimiento de OCR:', error);
+                showStatusMessage('Error al procesar la imagen.', true);
+            }
+        };
         
         /**
-         * Generates multiple-choice questions using the Gemini API.
+         * @description Generates reading comprehension and critical thinking questions using the Gemini API.
+         * The function now generates multiple-choice questions for comprehension and free-form questions for critical reading.
          */
-        async function generateMultipleChoiceQuestions() {
-            if (words.length === 0) {
-                showMessageModal('Advertencia', 'Por favor, introduce o carga algún texto antes de generar preguntas.');
+        const generateQuestions = async () => {
+            const textToAnalyze = textInput.value.trim();
+            if (textToAnalyze.length < 50) {
+                showStatusMessage('El texto es demasiado corto para generar preguntas significativas.', true);
                 return;
             }
-            
-            questionsDisplay.classList.add('hidden');
-            quizQuestions = [];
-            questionsContainer.innerHTML = '';
-            quizScore.classList.add('hidden');
-            submitQuizBtn.classList.add('hidden');
-            quizTitle.textContent = 'Cuestionario de Opción Múltiple';
 
-            toggleLoading(true);
-            showStatusMessage('Generando preguntas con opciones múltiples...');
+            // Show loading state
+            criticalReadingQuestionsContainer.style.display = 'block';
+            loadingQuestions.classList.remove('hidden');
+            multipleChoiceQuestions.innerHTML = '';
+            criticalReadingQuestions.innerHTML = '';
 
-            const prompt = `Genera un cuestionario de 5 preguntas de opción múltiple con 4 opciones (A, B, C, D) sobre el siguiente texto. La última opción siempre debe ser "Ninguna de las anteriores" o "Todas las anteriores" dependiendo de la pregunta. Para cada pregunta, incluye la pregunta, las opciones y la respuesta correcta. Asegúrate de que las preguntas y las respuestas estén directamente relacionadas con la información del texto.
+            // This is the prompt that will instruct the model
+            const prompt = `Genera preguntas de comprensión de opción múltiple y preguntas de lectura crítica abiertas sobre el siguiente texto.
             
-            TEXTO:
-            ${words.join(' ')}
+            Preguntas de Comprensión (Opción Múltiple):
+            - Genera 5 preguntas.
+            - Cada pregunta debe tener 4 opciones (a, b, c, d), y una de ellas debe ser la respuesta correcta.
             
-            FORMATO JSON REQUERIDO:
-            [{
-              "question": "Texto de la pregunta",
-              "options": ["Opción A", "Opción B", "Opción C", "Opción D"],
-              "correctAnswer": "Opción correcta"
-            }]`;
+            Preguntas de Lectura Crítica:
+            - Genera 5 preguntas abiertas que requieran un análisis más profundo y una respuesta personal.
             
-            let attempts = 0;
-            const maxAttempts = 3;
+            Formatea tu respuesta como un objeto JSON con la siguiente estructura:
+            
+            {
+              "multiple_choice_questions": [
+                {
+                  "question": "Texto de la pregunta",
+                  "options": [ "Opción A", "Opción B", "Opción C", "Opción D" ],
+                  "correct_answer": "Respuesta correcta"
+                },
+                // ... más preguntas
+              ],
+              "critical_reading_questions": [
+                "Texto de la pregunta 1",
+                "Texto de la pregunta 2",
+                // ... más preguntas
+              ]
+            }
+            
+            Texto:
+            "${textToAnalyze}"`;
 
-            while (attempts < maxAttempts) {
-                try {
-                    const payload = {
-                        contents: [{
-                            role: "user",
-                            parts: [{ text: prompt }]
-                        }],
-                        generationConfig: {
-                            responseMimeType: "application/json",
-                            responseSchema: {
-                                type: "ARRAY",
-                                items: {
-                                    type: "OBJECT",
-                                    properties: {
-                                        "question": { "type": "STRING" },
-                                        "options": {
-                                            "type": "ARRAY",
-                                            "items": { "type": "STRING" }
-                                        },
-                                        "correctAnswer": { "type": "STRING" }
-                                    },
-                                    "propertyOrdering": ["question", "options", "correctAnswer"]
-                                }
-                            }
+            // This is the schema for the structured JSON response
+            const responseSchema = {
+                type: "OBJECT",
+                properties: {
+                    "multiple_choice_questions": {
+                        type: "ARRAY",
+                        items: {
+                            type: "OBJECT",
+                            properties: {
+                                "question": { "type": "STRING" },
+                                "options": {
+                                    "type": "ARRAY",
+                                    "items": { "type": "STRING" }
+                                },
+                                "correct_answer": { "type": "STRING" }
+                            },
+                            "propertyOrdering": ["question", "options", "correct_answer"]
                         }
-                    };
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
-                    
+                    },
+                    "critical_reading_questions": {
+                        "type": "ARRAY",
+                        "items": { "type": "STRING" }
+                    }
+                },
+                "propertyOrdering": ["multiple_choice_questions", "critical_reading_questions"]
+            };
+            
+            let chatHistory = [];
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+            const payload = { 
+                contents: chatHistory,
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: responseSchema
+                }
+            };
+            
+            // ====================================================================================
+            // INSTRUCCIONES IMPORTANTES:
+            // Pega tu clave de API personal de Google AI Studio en la línea de abajo,
+            // dentro de las comillas dobles. Esta clave es necesaria para que funcione
+            // la generación de preguntas.
+            // ====================================================================================
+            const apiKey = "AIzaSyDg7-ZvjoBvaegUcHgi_McIn8l68hYBs6k";
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+            // Exponential backoff for API calls
+            const maxRetries = 3;
+            let currentRetry = 0;
+            const fetchWithRetry = async () => {
+                try {
                     const response = await fetch(apiUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
-                    
+
                     if (!response.ok) {
-                        throw new Error(`API error: ${response.status} ${response.statusText}`);
+                        if (response.status === 429 && currentRetry < maxRetries) {
+                            const delay = Math.pow(2, currentRetry) * 1000;
+                            currentRetry++;
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                            return fetchWithRetry();
+                        } else {
+                            throw new Error(`Error HTTP: ${response.status}`);
+                        }
                     }
-                    
+
                     const result = await response.json();
                     
                     if (result.candidates && result.candidates.length > 0 &&
                         result.candidates[0].content && result.candidates[0].content.parts &&
                         result.candidates[0].content.parts.length > 0) {
+                        
                         const jsonText = result.candidates[0].content.parts[0].text;
-                        quizQuestions = JSON.parse(jsonText);
-                        renderQuiz();
-                        questionsDisplay.classList.remove('hidden');
-                        showStatusMessage('Cuestionario generado con éxito. Responde las preguntas a continuación.');
-                        break; // Exit the loop on success
+                        const data = JSON.parse(jsonText);
+                        
+                        // Render Multiple Choice Questions
+                        const mcqHtml = data.multiple_choice_questions.map((q, index) => `
+                            <div class="mb-4">
+                                <p class="font-semibold text-sm mb-1">${index + 1}. ${q.question}</p>
+                                <ul class="list-none space-y-1 ml-4 text-xs">
+                                    ${q.options.map(option => `
+                                        <li><label><input type="radio" name="mcq-${index}" class="mr-2">${option}</label></li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        `).join('');
+                        multipleChoiceQuestions.innerHTML = mcqHtml;
+                        
+                        // Render Critical Reading Questions
+                        const crqHtml = data.critical_reading_questions.map((q, index) => `
+                            <li>${q}</li>
+                        `).join('');
+                        criticalReadingQuestions.innerHTML = `<ul class="list-disc list-inside space-y-2 text-xs">${crqHtml}</ul>`;
+
+                        showStatusMessage('Preguntas generadas exitosamente.');
                     } else {
-                        throw new Error('Respuesta de la API vacía o con formato inesperado.');
+                        throw new Error('Respuesta de la API inesperada.');
                     }
-                    
                 } catch (error) {
                     console.error('Error al generar preguntas:', error);
-                    attempts++;
-                    showStatusMessage(`Intento ${attempts}/${maxAttempts}: Fallo al generar preguntas. Reintentando...`);
-                    // Implement exponential backoff
-                    await new Promise(res => setTimeout(res, 2000 * Math.pow(2, attempts - 1)));
+                    multipleChoiceQuestions.innerHTML = `<p class="text-red-500">Error al generar preguntas de opción múltiple.</p>`;
+                    criticalReadingQuestions.innerHTML = `<p class="text-red-500">Error al generar preguntas de lectura crítica.</p>`;
+                    showStatusMessage('Error al generar preguntas.', true);
+                } finally {
+                    loadingQuestions.classList.add('hidden');
                 }
-            }
-
-            if (attempts === maxAttempts) {
-                showMessageModal('Error', 'No se pudieron generar las preguntas después de varios intentos. Por favor, inténtalo de nuevo más tarde.');
-            }
+            };
             
-            toggleLoading(false);
-        }
+            fetchWithRetry();
+        };
 
-        /**
-         * Generates open-ended critical reading questions using the Gemini API.
-         */
-        async function generateCriticalQuestions() {
-            if (words.length === 0) {
-                showMessageModal('Advertencia', 'Por favor, introduce o carga algún texto antes de generar preguntas.');
-                return;
-            }
-            
-            questionsDisplay.classList.add('hidden');
-            questionsContainer.innerHTML = '';
-            quizScore.classList.add('hidden');
-            submitQuizBtn.classList.add('hidden');
-            quizTitle.textContent = 'Preguntas de Lectura Crítica';
+        // Updates the reading area based on the selected mode
+        const updateReadingDisplay = (text) => {
+            words = text.split(/\s+/).filter(word => word.length > 0);
+            const mode = modeSelect.value;
+            const highlightStyle = highlightStyleSelect.value;
 
-            toggleLoading(true);
-            showStatusMessage('Generando preguntas de lectura crítica...');
-
-            const prompt = `Genera un cuestionario de 5 preguntas de lectura crítica y de respuesta abierta sobre el siguiente texto. Estas preguntas deben requerir análisis, síntesis, inferencia y evaluación, no solo el recuerdo de hechos. No incluyas respuestas.
+            // Clear previous styles and content
+            readingArea.innerHTML = '';
+            // Se limpian las clases de modo
+            readingArea.classList.remove('highlight-background', 'highlight-underline', 'highlight-bold-orp', 'single-word-mode');
             
-            TEXTO:
-            ${words.join(' ')}
-            
-            FORMATO REQUERIDO:
-            1. Pregunta 1
-            2. Pregunta 2
-            ...`;
-            
-            let attempts = 0;
-            const maxAttempts = 3;
-
-            while (attempts < maxAttempts) {
-                try {
-                    const payload = {
-                        contents: [{
-                            role: "user",
-                            parts: [{ text: prompt }]
-                        }],
-                    };
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
+            if (words.length > 0) {
+                if (mode === 'highlight') {
+                    // Set white-space to preserve formatting in highlight mode
+                    readingArea.style.whiteSpace = 'pre-wrap';
                     
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error(`API error: ${response.status} ${response.statusText}`);
-                    }
-                    
-                    const result = await response.json();
-                    
-                    if (result.candidates && result.candidates.length > 0 &&
-                        result.candidates[0].content && result.candidates[0].content.parts &&
-                        result.candidates[0].content.parts.length > 0) {
-                        const criticalQuestionsText = result.candidates[0].content.parts[0].text;
-                        
-                        // Render the open-ended questions
-                        const questionsHtml = criticalQuestionsText.split('\n').filter(q => q.trim().length > 0).map(q => `<div class="mb-4">${q}</div>`).join('');
-                        questionsContainer.innerHTML = questionsHtml;
-                        questionsDisplay.classList.remove('hidden');
-                        showStatusMessage('Preguntas críticas generadas con éxito. Reflexiona sobre ellas.');
-                        break; // Exit the loop on success
-                    } else {
-                        throw new Error('Respuesta de la API vacía o con formato inesperado.');
-                    }
-                    
-                } catch (error) {
-                    console.error('Error al generar preguntas críticas:', error);
-                    attempts++;
-                    showStatusMessage(`Intento ${attempts}/${maxAttempts}: Fallo al generar preguntas. Reintentando...`);
-                    // Implement exponential backoff
-                    await new Promise(res => setTimeout(res, 2000 * Math.pow(2, attempts - 1)));
-                }
-            }
-
-            if (attempts === maxAttempts) {
-                showMessageModal('Error', 'No se pudieron generar las preguntas críticas después de varios intentos. Por favor, inténtalo de nuevo más tarde.');
-            }
-            
-            toggleLoading(false);
-        }
-
-        /**
-         * Renders the multiple-choice quiz on the UI.
-         */
-        function renderQuiz() {
-            questionsContainer.innerHTML = '';
-            quizScore.classList.add('hidden');
-            if (quizQuestions.length === 0) {
-                questionsContainer.textContent = 'No se pudieron generar las preguntas. Por favor, inténtalo de nuevo.';
-                submitQuizBtn.classList.add('hidden');
-                return;
-            }
-            
-            quizQuestions.forEach((q, index) => {
-                const questionDiv = document.createElement('div');
-                questionDiv.classList.add('mb-4', 'p-4', 'border', 'rounded-lg', 'border-gray-300', 'dark:border-gray-600');
-                
-                const questionText = document.createElement('p');
-                questionText.classList.add('font-semibold', 'mb-2');
-                questionText.textContent = `${index + 1}. ${q.question}`;
-                questionDiv.appendChild(questionText);
-                
-                const optionsList = document.createElement('div');
-                optionsList.classList.add('flex', 'flex-col', 'space-y-2');
-                
-                q.options.forEach((option, optIndex) => {
-                    const optionLabel = document.createElement('label');
-                    optionLabel.classList.add('flex', 'items-center', 'space-x-2', 'p-3', 'rounded-lg', 'cursor-pointer', 'border', 'border-gray-200', 'dark:border-gray-600', 'hover:bg-gray-100', 'dark:hover:bg-gray-800', 'transition-colors', 'quiz-option');
-                    
-                    const optionInput = document.createElement('input');
-                    optionInput.type = 'radio';
-                    optionInput.name = `question-${index}`;
-                    optionInput.value = option;
-                    optionInput.classList.add('form-radio', 'h-4', 'w-4', 'text-blue-600', 'border-gray-300', 'dark:border-gray-500', 'dark:bg-gray-700', 'focus:ring-blue-500');
-                    
-                    const optionText = document.createElement('span');
-                    optionText.textContent = option;
-                    
-                    optionLabel.appendChild(optionInput);
-                    optionLabel.appendChild(optionText);
-                    optionsList.appendChild(optionLabel);
-                });
-                
-                questionDiv.appendChild(optionsList);
-                questionsContainer.appendChild(questionDiv);
-            });
-            
-            submitQuizBtn.classList.remove('hidden');
-        }
-
-        /**
-         * Evaluates the quiz and displays the score.
-         */
-        function submitQuiz() {
-            let score = 0;
-            const totalQuestions = quizQuestions.length;
-            
-            quizQuestions.forEach((q, index) => {
-                const questionDiv = questionsContainer.children[index];
-                const selectedOption = questionDiv.querySelector(`input[name="question-${index}"]:checked`);
-                
-                // Remove previous feedback classes
-                const allLabels = questionDiv.querySelectorAll('.quiz-option');
-                allLabels.forEach(label => label.classList.remove('correct', 'incorrect'));
-                
-                // Find and highlight the correct answer
-                const correctOptionLabel = Array.from(allLabels).find(label => {
-                    const input = label.querySelector('input');
-                    return input.value === q.correctAnswer;
-                });
-                if (correctOptionLabel) {
-                    correctOptionLabel.classList.add('correct');
-                }
-
-                if (selectedOption) {
-                    // Check if the selected answer is correct
-                    if (selectedOption.value === q.correctAnswer) {
-                        score++;
-                    } else {
-                        // Highlight the incorrect answer
-                        const selectedLabel = selectedOption.closest('label');
-                        if (selectedLabel) {
-                            selectedLabel.classList.add('incorrect');
+                    readingArea.classList.add(highlightStyle);
+                    words.forEach((word, index) => {
+                        const span = document.createElement('span');
+                        span.className = 'word cursor-pointer';
+                        span.dataset.index = index;
+                        // Comentario: ORP (Optimal Recognition Point) es el punto óptimo donde el ojo se fija en una palabra.
+                        // El estilo `highlight-bold-orp` resalta este punto con negrita y un subrayado.
+                        // El color del subrayado es el color de resalte, mientras que el color de la fuente
+                        // es el color del tema seleccionado.
+                        if (highlightStyle === 'highlight-bold-orp') {
+                            span.innerHTML = getOrpWord(word) + ' ';
+                        } else {
+                            span.textContent = word + ' ';
                         }
+                        readingArea.appendChild(span);
+                    });
+                } else if (mode === 'single-word') {
+                    // Reset white-space for single-word mode
+                    readingArea.style.whiteSpace = 'nowrap';
+                    
+                    readingArea.classList.add('single-word-mode');
+                }
+                readingArea.classList.remove('italic');
+                readingArea.style.textAlign = mode === 'single-word' ? 'center' : 'left';
+                // Initially display the word at the current index if it exists
+                if (currentIndex < words.length) {
+                     displayCurrentWord(currentIndex);
+                }
+            } else {
+                readingArea.innerHTML = '<span id="reading-intro" class="text-center italic text-gray-600">El texto de tu lectura aparecerá aquí.</span>';
+                readingArea.classList.add('italic');
+                readingArea.style.textAlign = 'center';
+            }
+        };
+
+        // Displays a single word or chunk without advancing the index or starting a timer
+        const displayCurrentWord = (index) => {
+            const mode = modeSelect.value;
+            const wordsPerChunk = parseInt(wordsPerChunkSlider.value, 10);
+            
+            // Show/hide gaze marker based on checkbox state
+            let gazeMarker = document.getElementById('gaze-marker');
+            if (gazeMarkerCheckbox.checked && mode === 'highlight') {
+                 if (!gazeMarker) {
+                    gazeMarker = document.createElement('div');
+                    gazeMarker.id = 'gaze-marker';
+                    gazeMarker.className = 'gaze-marker';
+                    readingArea.appendChild(gazeMarker);
+                }
+            } else {
+                if (gazeMarker) {
+                    gazeMarker.remove();
+                }
+            }
+
+
+            if (mode === 'highlight') {
+                const allSpans = readingArea.querySelectorAll('span.word');
+                
+                // Remove highlight from all words
+                allSpans.forEach(span => span.classList.remove('highlighted'));
+
+                // Highlight the new chunk
+                const currentChunkEnd = Math.min(index + wordsPerChunk, words.length);
+                for (let i = index; i < currentChunkEnd; i++) {
+                    if (allSpans[i]) {
+                         allSpans[i].classList.add('highlighted');
                     }
                 }
-                
-                // Disable all options after submission
-                const allInputs = questionDiv.querySelectorAll('input[type="radio"]');
-                allInputs.forEach(input => input.disabled = true);
-            });
+
+                // Scroll to keep the chunk in view
+                if (allSpans[index]) {
+                    const chunkStartTop = allSpans[index].offsetTop;
+                    const readingAreaHeight = readingArea.clientHeight;
+                    const scrollPos = chunkStartTop - (readingAreaHeight / 2);
+                    readingArea.scrollTop = scrollPos;
+                }
+            } else if (mode === 'single-word') {
+                 readingArea.innerHTML = '';
+                 
+                 const currentWord = words[index];
+                 if (!currentWord) return;
+
+                 const wordSpan = document.createElement('span');
+                 wordSpan.className = 'single-word-display';
+                 wordSpan.textContent = currentWord;
+                 
+                 readingArea.appendChild(wordSpan);
+            }
+            updateProgressBar();
+            updateWordCounter();
+            updateStats();
+        };
+
+        // Renders the next word/chunk in the reading session
+        const displayNextWord = () => {
+            if (!isReading) return;
             
-            quizScore.textContent = `Tu puntuación es: ${score} de ${totalQuestions}`;
-            quizScore.classList.remove('hidden');
-            submitQuizBtn.classList.add('hidden');
-            showMessageModal('Autoevaluación Completa', `Has respondido ${score} de ${totalQuestions} preguntas correctamente.`);
-        }
-
-        // ** Event Listeners **
-
-        // Control buttons
-        playPauseBtn.addEventListener('click', () => {
-            if (isReading) {
-                pauseReading();
+            if (currentIndex < words.length) {
+                const wordsPerChunk = parseInt(wordsPerChunkSlider.value, 10);
+                
+                displayCurrentWord(currentIndex);
+                
+                const lastWordOfChunk = words[Math.min(currentIndex + wordsPerChunk - 1, words.length - 1)];
+                const lastChar = lastWordOfChunk ? lastWordOfChunk.slice(-1) : '';
+                const punctuationPauseMultiplier = {
+                    ',': 0.5,
+                    ';': 0.7,
+                    ':': 0.7,
+                    '.': 1.0,
+                    '?': 1.0,
+                    '!': 1.0
+                };
+                const pauseMultiplier = punctuationPauseMultiplier[lastChar] || 0;
+                const baseInterval = 60000 / wpmSlider.value;
+                const nextInterval = baseInterval * wordsPerChunk + (baseInterval * pauseMultiplier);
+                
+                currentIndex += wordsPerChunk;
+                timer = setTimeout(displayNextWord, nextInterval);
             } else {
-                startReading();
+                stopReading();
+                showStatusMessage("¡Lectura completada!");
+            }
+        };
+        
+        // Updates the progress bar
+        const updateProgressBar = () => {
+            const progress = (currentIndex / words.length) * 100;
+            progressBar.style.width = `${progress}%`;
+        };
+
+        // Updates the word counter
+        const updateWordCounter = () => {
+            wordCounter.textContent = `Palabra ${Math.min(currentIndex, words.length)} de ${words.length}`;
+        };
+        
+        // Updates the reading stats
+        const updateStats = () => {
+            if (!isReading || startTime === 0) {
+                statsDisplay.textContent = '';
+                return;
+            }
+            const elapsedTime = (Date.now() - startTime) / 1000;
+            const wordsRemaining = words.length - currentIndex;
+            const wpm = wpmSlider.value;
+            const estimatedTime = (wordsRemaining / wpm) * 60;
+            
+            const formatTime = (seconds) => {
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            };
+            
+            statsDisplay.textContent = `Tiempo: ${formatTime(elapsedTime)} | Restante: ~${formatTime(estimatedTime)}`;
+        };
+        
+        // Starts the reading session
+        const startReading = () => {
+            // New, more robust logic to prevent word skipping
+            const textToRead = textInput.value.trim();
+            if (textToRead === "") {
+                showStatusMessage("Por favor, pega un texto, carga un archivo o una imagen.", true);
+                return;
+            }
+
+            // Re-initialize if the text has changed
+            const newWords = textToRead.split(/\s+/).filter(word => word.length > 0);
+            if (newWords.join(' ') !== words.join(' ')) {
+                words = newWords;
+                currentIndex = 0;
+                updateReadingDisplay(textToRead);
+            }
+
+            if (isReading && !isPaused) {
+                return; // Already reading and not paused, do nothing
+            }
+
+            // Start or resume the session
+            isReading = true;
+            isPaused = false;
+            if (startTime === 0) {
+                 startTime = Date.now();
+            }
+            
+            // The displayNextWord function now handles the timer and the word advancement
+            displayNextWord();
+        };
+
+        // Pauses the reading session
+        const pauseReading = () => {
+            if (timer) {
+                clearTimeout(timer);
+                isPaused = true;
+                isReading = false;
+                showStatusMessage("Pausado");
+            }
+        };
+
+        // Stops the reading session and resets state
+        const stopReading = () => {
+            if (timer) {
+                clearTimeout(timer);
+            }
+            isPaused = false;
+            isReading = false;
+            currentIndex = 0;
+            startTime = 0;
+            updateProgressBar();
+            updateWordCounter();
+            updateStats();
+            updateReadingDisplay(textInput.value);
+            showStatusMessage("Detenido");
+            // Remove gaze marker when stopped
+            let gazeMarker = document.getElementById('gaze-marker');
+            if (gazeMarker) {
+                gazeMarker.remove();
+            }
+        };
+
+        // Clears all text and resets the application state
+        const clearAll = () => {
+            stopReading();
+            textInput.value = '';
+            words = [];
+            currentIndex = 0;
+            updateReadingDisplay('');
+            criticalReadingQuestionsContainer.style.display = 'none';
+            multipleChoiceQuestions.innerHTML = '';
+            criticalReadingQuestions.innerHTML = '';
+            showStatusMessage("Texto borrado.");
+        };
+        
+        // Navigates to the previous word/chunk
+        const prevWord = () => {
+            const wordsPerChunk = parseInt(wordsPerChunkSlider.value, 10);
+            pauseReading();
+            currentIndex = Math.max(0, currentIndex - wordsPerChunk);
+            displayCurrentWord(currentIndex);
+        };
+
+        // Navigates to the next word/chunk
+        const nextWord = () => {
+            const wordsPerChunk = parseInt(wordsPerChunkSlider.value, 10);
+            pauseReading();
+            currentIndex = Math.min(words.length, currentIndex + wordsPerChunk);
+            displayCurrentWord(currentIndex);
+        };
+        
+        // Loads a predefined text for practice mode
+        const startPracticeMode = () => {
+            const practiceText = "La práctica de la lectura de velocidad es una habilidad que mejora con la constancia y la concentración. Entrena tu mente para captar grupos de palabras en lugar de una por una, minimizando el movimiento ocular. Esto te permitirá absorber información más rápidamente y mejorar la retención. ¡Inténtalo ahora!";
+            textInput.value = practiceText;
+            updateReadingDisplay(practiceText);
+            showStatusMessage("Modo práctica iniciado.");
+        };
+
+        // ========================
+        // Event Listeners
+        // ========================
+
+        // Button clicks
+        startButton.addEventListener('click', startReading);
+        pauseButton.addEventListener('click', pauseReading);
+        stopButton.addEventListener('click', stopReading);
+        saveButton.addEventListener('click', saveSession);
+        loadButton.addEventListener('click', loadSession);
+        practiceButton.addEventListener('click', startPracticeMode);
+        generateQuestionsButton.addEventListener('click', generateQuestions);
+        
+        // New navigation buttons
+        backButton.addEventListener('click', prevWord);
+        nextButton.addEventListener('click', nextWord);
+
+        // New clear button
+        clearButton.addEventListener('click', clearAll);
+
+        // File inputs
+        fileInputText.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                loadFile(file);
             }
         });
-        stopBtn.addEventListener('click', stopReading);
-        prevBtn.addEventListener('click', prevWord);
-        nextBtn.addEventListener('click', nextWord);
-        generateMcqBtn.addEventListener('click', generateMultipleChoiceQuestions);
-        generateCriticalBtn.addEventListener('click', generateCriticalQuestions);
-        submitQuizBtn.addEventListener('click', submitQuiz); // New event listener for the quiz
-        saveSessionBtn.addEventListener('click', saveSession);
-        loadSessionBtn.addEventListener('click', loadSession);
-        modalOkBtn.addEventListener('click', hideMessageModal);
-
-        // Input and control changes
-        wpmSlider.addEventListener('input', () => {
-            wpmValue.textContent = wpmSlider.value;
-            // Recalculate remaining time immediately
-            updateStats();
-            // Restart the interval if reading
-            if (isReading) {
-                pauseReading();
-                startReading();
+        fileInputImage.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                extractTextFromImage(file);
             }
+        });
+
+        // Sliders
+        wpmSlider.addEventListener('input', () => {
+            wpmValueSpan.textContent = wpmSlider.value;
         });
 
         fontSizeSlider.addEventListener('input', () => {
-            fontSizeValue.textContent = `${fontSizeSlider.value}px`;
-            readingDisplay.style.fontSize = `${fontSizeSlider.value}px`;
+            fontSizeValueSpan.textContent = fontSizeSlider.value;
+            readingArea.style.fontSize = `${fontSizeSlider.value}px`;
         });
         
-        textInput.addEventListener('input', () => {
-            // Stop reading and update on text change
-            stopReading();
-            if (textInput.value.trim().length > 0) {
-                updateReadingDisplay(textInput.value);
+        wordsPerChunkSlider.addEventListener('input', () => {
+            wordsPerChunkValueSpan.textContent = wordsPerChunkSlider.value;
+            updateReadingDisplay(textInput.value); // Re-render to update highlight
+            displayCurrentWord(currentIndex); // Update highlight position
+        });
+        
+        // Select boxes
+        themeSelect.addEventListener('change', (e) => {
+            // Apply theme CSS variables to the document
+            document.body.classList.remove('light', 'dark', 'sepia');
+            document.body.classList.add(e.target.value);
+            
+            // Re-apply the font and font-size, as switching themes might reset them
+            readingArea.style.fontSize = `${fontSizeSlider.value}px`;
+            document.body.classList.remove('font-inter', 'font-serif', 'font-mono');
+            document.body.classList.add(`font-${fontSelect.value}`);
+            
+            // NEW: Update reading area font color based on mode and new theme
+            if (modeSelect.value === 'single-word') {
+                if (e.target.value === 'sepia') {
+                    readingArea.style.color = '#1f2937'; // Negro para tema sepia
+                    fontColorPicker.value = '#1f2937';
+                } else {
+                    readingArea.style.color = '#ef4444'; // Rojo para temas claro y oscuro
+                    fontColorPicker.value = '#ef4444';
+                }
             } else {
-                clearWords();
+                // If not in single-word mode, reset to the user's selected color
+                 readingArea.style.color = fontColorPicker.value;
             }
         });
 
-        // Function to handle reading settings updates
-        function updateReadingSettings() {
-            // Font update
-            readingDisplay.style.fontFamily = `"${fontSelect.value}"`;
-            
-            // Theme update
-            document.body.className = `${themeSelect.value}-mode bg-gray-100 text-gray-800 font-inter`;
-            
-            // Mode and highlight style update
-            if (modeSelect.value === 'highlight') {
-                readingTextHighlight.classList.remove('hidden');
-                readingTextOneWord.classList.add('hidden');
-                highlightControls.style.display = 'flex';
-                // Remove all highlight classes before re-adding
-                readingTextHighlight.className = 'highlight-mode';
-            } else {
-                readingTextHighlight.classList.add('hidden');
-                readingTextOneWord.classList.remove('hidden');
-                highlightControls.style.display = 'none';
-            }
-        }
+        fontSelect.addEventListener('change', (e) => {
+            document.body.classList.remove('font-inter', 'font-serif', 'font-mono');
+            document.body.classList.add(`font-${e.target.value}`);
+        });
 
-        modeSelect.addEventListener('change', updateReadingSettings);
+        // ========================
+        // Fix: The mode change now correctly handles the font color for the reading area only.
+        // ========================
+        modeSelect.addEventListener('change', (e) => {
+            const isHighlightMode = e.target.value === 'highlight';
+            highlightControls.style.display = isHighlightMode ? 'flex' : 'none';
+            
+            if (e.target.value === 'single-word') {
+                 // NEW: Set color based on the current theme
+                if (themeSelect.value === 'sepia') {
+                    fontColorPicker.value = '#1f2937';
+                    readingArea.style.color = '#1f2937';
+                } else {
+                    fontColorPicker.value = '#ef4444';
+                    readingArea.style.color = '#ef4444';
+                }
+            } else {
+                // If switching back to highlight, reset to the user's selected color
+                readingArea.style.color = fontColorPicker.value;
+            }
+
+            // Trigger a full re-render to apply the correct classes and content structure
+            updateReadingDisplay(textInput.value);
+            // Ensure the reading area's background and border colors are updated with the current theme
+            readingArea.classList.remove('bg-card');
+            readingArea.classList.add('bg-card');
+            readingArea.classList.remove('border-theme');
+            readingArea.classList.add('border-theme');
+        });
+
         highlightStyleSelect.addEventListener('change', () => {
-            // Re-render the display to apply the new style
-            if (textInput.value.trim().length > 0) {
-                updateReadingDisplay(textInput.value);
-            }
-        });
-        themeSelect.addEventListener('change', updateReadingSettings);
-        fontSelect.addEventListener('change', updateReadingSettings);
-        
-        // File input handler
-        fileInput.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (!file) {
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.onloadstart = () => {
-                toggleLoading(true);
-                showStatusMessage('Cargando archivo...');
-            };
-
-            reader.onload = async (e) => {
-                const fileType = file.type;
-                let textContent = '';
-                
-                try {
-                    if (fileType === 'application/pdf') {
-                        showStatusMessage('Extrayendo texto del PDF...');
-                        // Use pdf.js to extract text from PDF
-                        const typedarray = new Uint8Array(e.target.result);
-                        const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
-                        for (let i = 1; i <= pdf.numPages; i++) {
-                            const page = await pdf.getPage(i);
-                            const textContentResult = await page.getTextContent();
-                            textContent += textContentResult.items.map(item => item.str).join(' ');
-                        }
-                    } else if (fileType.startsWith('image/')) {
-                        showStatusMessage('Reconociendo texto de la imagen (OCR)...');
-                        // Use Tesseract.js to perform OCR on image
-                        const { data: { text } } = await Tesseract.recognize(
-                            file,
-                            'spa', // language code for Spanish
-                            {
-                                logger: m => {
-                                    if (m.status === 'recognizing text') {
-                                        showStatusMessage(`Reconociendo texto: ${Math.round(m.progress * 100)}%`);
-                                    }
-                                }
-                            }
-                        );
-                        textContent = text;
-                    } else if (fileType === 'text/plain') {
-                        textContent = e.target.result;
-                    } else {
-                        throw new Error('Tipo de archivo no soportado. Por favor, sube un archivo de texto (.txt), PDF, o una imagen.');
-                    }
-
-                    if (textContent.trim().length > 0) {
-                        textInput.value = textContent;
-                        updateReadingDisplay(textContent);
-                        showStatusMessage('Archivo cargado con éxito.');
-                    } else {
-                        throw new Error('El archivo no contiene texto o no se pudo extraer.');
-                    }
-
-                } catch (error) {
-                    console.error('Error al cargar archivo:', error);
-                    showMessageModal('Error de Archivo', `Error al procesar el archivo. ${error.message}`);
-                    textInput.value = '';
-                    clearWords();
-                } finally {
-                    toggleLoading(false);
-                }
-            };
-            
-            // Read file based on type
-            if (file.type === 'application/pdf') {
-                reader.readAsArrayBuffer(file);
-            } else {
-                reader.readAsDataURL(file);
-            }
-        });
-        
-        // Paste button handler
-        pasteBtn.addEventListener('click', async () => {
-            try {
-                // Check for clipboard API support
-                if (!navigator.clipboard || !navigator.clipboard.readText) {
-                    throw new Error('La API del Portapapeles no está disponible en este navegador o entorno.');
-                }
-                const text = await navigator.clipboard.readText();
-                if (text.trim().length > 0) {
-                    textInput.value = text;
-                    updateReadingDisplay(text);
-                    showStatusMessage('Texto pegado del portapapeles.');
-                } else {
-                    showMessageModal('Advertencia', 'El portapapeles está vacío.');
-                }
-            } catch (err) {
-                console.error('Error al pegar del portapapeles:', err);
-                showMessageModal('Error', `No se pudo acceder al portapapeles. Por favor, pégalo manualmente en el cuadro de texto. Detalle: ${err.message}`);
-            }
+            updateReadingDisplay(textInput.value);
         });
 
-        // Practice mode button handler
-        pastePracticeBtn.addEventListener('click', () => {
-            const practiceText = `La lectura rápida, también conocida como speed reading, es un conjunto de técnicas y métodos cuyo objetivo principal es aumentar la velocidad de lectura sin disminuir significativamente la comprensión. Históricamente, se ha promovido como una habilidad valiosa para profesionales y estudiantes que necesitan procesar grandes volúmenes de información en poco tiempo. Algunas de las estrategias clave incluyen la eliminación de la subvocalización (la tendencia a "pronunciar" las palabras en silencio), la reducción de las fijaciones oculares (enfocarse en grupos de palabras en lugar de una por una) y el uso de un puntero o guía visual para dirigir el ojo a través del texto.
-
-Aunque hay cierto debate sobre la eficacia real de estas técnicas para textos complejos que requieren una comprensión profunda, la lectura rápida puede ser una herramienta útil para escanear y revisar material. Su práctica regular no solo puede acelerar la velocidad de decodificación, sino también entrenar al cerebro para procesar información de manera más eficiente. Con el auge de las tecnologías digitales y el inmenso flujo de datos, la capacidad de leer de manera más rápida y selectiva se ha vuelto cada vez más relevante. Sin embargo, los expertos sugieren que la clave del éxito no radica en la velocidad por sí sola, sino en la capacidad de adaptar la técnica de lectura al tipo de material y al propósito de la misma, combinando la velocidad con la comprensión y la retención.`;
-            textInput.value = practiceText;
-            updateReadingDisplay(practiceText);
-            showStatusMessage('Modo práctica activado. Un texto de muestra ha sido cargado.');
+        // Highlight color picker
+        highlightColorPicker.addEventListener('input', (e) => {
+            document.documentElement.style.setProperty('--highlight-color', e.target.value);
         });
         
-        /**
-         * Saves the current reading session to session storage.
-         */
-        function saveSession() {
-            if (words.length === 0) {
-                showMessageModal('Advertencia', 'No hay nada que guardar. Por favor, introduce texto primero.');
-                return;
-            }
-            const sessionData = {
-                text: textInput.value,
-                currentIndex: currentIndex,
-                wpm: wpmSlider.value,
-                mode: modeSelect.value,
-                highlightStyle: highlightStyleSelect.value,
-                theme: themeSelect.value,
-                font: fontSelect.value,
-                fontSize: fontSizeSlider.value,
-                timeElapsed: timeElapsed,
-            };
-            try {
-                sessionStorage.setItem('speedReaderSession', JSON.stringify(sessionData));
-                showMessageModal('Sesión Guardada', 'Tu progreso de lectura ha sido guardado en el navegador.');
-            } catch (error) {
-                console.error('Error al guardar la sesión:', error);
-                showMessageModal('Error', 'No se pudo guardar la sesión. Es posible que el navegador no lo permita.');
-            }
-        }
-        
-        /**
-         * Loads a previously saved reading session from session storage.
-         */
-        function loadSession() {
-            try {
-                const sessionData = JSON.parse(sessionStorage.getItem('speedReaderSession'));
-                if (sessionData) {
-                    // Restore text and settings
-                    textInput.value = sessionData.text;
-                    wpmSlider.value = sessionData.wpm;
-                    modeSelect.value = sessionData.mode;
-                    highlightStyleSelect.value = sessionData.highlightStyle;
-                    themeSelect.value = sessionData.theme;
-                    fontSelect.value = sessionData.font;
-                    fontSizeSlider.value = sessionData.fontSize;
-                    timeElapsed = sessionData.timeElapsed;
-                    currentIndex = sessionData.currentIndex;
-                    
-                    // Trigger UI updates
-                    updateReadingDisplay(sessionData.text);
-                    updateReadingSettings();
-                    updateUI();
-                    displayCurrentWord(currentIndex);
-                    
-                    showMessageModal('Sesión Cargada', 'Tu sesión de lectura anterior ha sido restaurada.');
-                } else {
-                    showMessageModal('No hay sesión', 'No se encontró una sesión de lectura guardada.');
-                }
-            } catch (error) {
-                console.error('Error al cargar la sesión:', error);
-                showMessageModal('Error', 'No se pudo cargar la sesión. Los datos podrían estar corruptos.');
-            }
-        }
+        // Font color picker listener
+        fontColorPicker.addEventListener('input', (e) => {
+            // Apply the user's color to the reading area
+            readingArea.style.color = e.target.value;
+        });
 
-        // Click event on reading text to change position
-        readingTextHighlight.addEventListener('click', (event) => {
+        // New: Click event listener for the reading area
+        readingArea.addEventListener('click', (event) => {
             const target = event.target;
             // Check if the clicked element is a word span
             if (target.classList.contains('word') && modeSelect.value === 'highlight') {
