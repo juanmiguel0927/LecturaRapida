@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lectura Rápida</title>
-    <!-- We use absolute links for JavaScript libraries to ensure they work in any web hosting environment, such as GitHub Pages. -->
+    <!-- Se usan enlaces absolutos para las bibliotecas de JavaScript para garantizar que funcionen en cualquier entorno de alojamiento web, como GitHub Pages. -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
@@ -381,7 +381,7 @@
     </div>
     <script>
         // API Configuration and Variables
-        const API_KEY = ""; // Leave as empty string for local execution.
+        const API_KEY = ""; // Leave as empty string for local execution in Canvas.
         const GENERATION_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=" + API_KEY;
         
         let isReading = false;
@@ -417,6 +417,7 @@
         const progressBar = document.getElementById('progress-bar');
         const fileInputText = document.getElementById('file-input-text');
         const fileInputImage = document.getElementById('file-input-image');
+        const practiceButton = document.getElementById('practice-button');
         const generateQuestionsButton = document.getElementById('generate-questions-button');
         const criticalReadingQuestionsContainer = document.getElementById('critical-reading-questions-container');
         const multipleChoiceQuestionsDiv = document.getElementById('multiple-choice-questions');
@@ -585,6 +586,14 @@
             Texto a analizar:
             "${text}"
             `;
+            
+            // NOTE: The API_KEY below is for demonstration within the Canvas environment.
+            // When deploying to a public site like GitHub Pages, you must use a valid API key.
+            // You can get one from Google AI Studio: https://aistudio.google.com/
+            const isLocalExecution = GENERATION_API_URL.endsWith("key=");
+            if (isLocalExecution) {
+                console.log("Using a placeholder API key for local execution. Get a valid key for external deployment.");
+            }
 
             try {
                 const payload = {
@@ -863,6 +872,15 @@
                     updateReadingDisplay(text);
                 });
             }
+        });
+
+        // Event listener for the new "Practice Mode" button
+        practiceButton.addEventListener('click', () => {
+            const practiceText = `El espacio es vasto y, en su mayoría, vacío. Las distancias entre las estrellas y las galaxias son tan grandes que la luz, que viaja a una velocidad asombrosa de 299.792 kilómetros por segundo, tarda años, décadas, o incluso millones de años en recorrerlas. Por ejemplo, la estrella más cercana a nuestro sol, Proxima Centauri, está a unos 4.2 años luz de distancia. Esto significa que la luz que vemos de ella hoy salió hace más de cuatro años. Esta inmensidad es lo que hace que la exploración espacial tripulada sea un desafío tan monumental, obligándonos a pensar en tecnologías y enfoques que van más allá de nuestra experiencia actual en la Tierra.`;
+            textInput.value = practiceText;
+            updateReadingDisplay(practiceText);
+            stopReading();
+            showStatusMessage('Texto de práctica cargado. ¡Ahora puedes empezar a leer!');
         });
 
         generateQuestionsButton.addEventListener('click', generateQuestions);
