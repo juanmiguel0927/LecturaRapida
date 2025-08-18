@@ -448,7 +448,8 @@
                 return;
             }
 
-            words = text.match(/\b[\w'-]+\b/g) || [];
+            // CORREGIDO: Expresión regular para incluir caracteres acentuados y la 'ñ'
+            words = text.match(/\b[\wáéíóúüñÁÉÍÓÚÜÑ'-]+\b/g) || [];
             totalWords = words.length;
             wordCounter.textContent = `Palabra: ${currentIndex + 1} de ${totalWords}`;
             updateStats();
