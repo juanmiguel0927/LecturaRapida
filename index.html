@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lector Rápido</title>
+    <title>Lectura Rápida</title>
+    <!-- Se usan enlaces absolutos para las bibliotecas de JavaScript para garantizar que funcionen en cualquier entorno de alojamiento web, como GitHub Pages. -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
@@ -14,27 +15,40 @@
         :root {
             --highlight-color: #fde68a; /* Default highlight color */
             --text-color: #1f2937; /* Default text color (gray-800) */
+            --bg-color: #f3f4f6;
+            --border-color: #e5e7eb;
+            --input-bg-color: #ffffff;
+            --input-text-color: #333333;
         }
         
         /* Theme classes */
         body {
             font-family: 'Inter', sans-serif;
             transition: background-color 0.3s, color 0.3s;
-            color: var(--text-color); /* Use custom property for text color */
+            color: var(--text-color); /* The main body text color is now separate from the reading area color */
         }
         .light {
-            background-color: #f3f4f6;
-            --text-color: #1f2937; /* Dark text for light background */
+            --bg-color: #f3f4f6;
+            --text-color: #1f2937;
+            --border-color: #e5e7eb;
+            --input-bg-color: #ffffff;
+            --input-text-color: #333333;
         }
         .dark {
-            background-color: #1f2937;
-            --highlight-color: #a16207;
-            --text-color: #e5e7eb; /* Light text for dark background */
+            --bg-color: #1f2937;
+            --highlight-color: #a16207; /* Darker highlight for dark mode */
+            --text-color: #e5e7eb;
+            --border-color: #374151;
+            --input-bg-color: #374151;
+            --input-text-color: #e5e7eb;
         }
         .sepia {
-            background-color: #fbf0d9;
+            --bg-color: #fbf0d9;
             --highlight-color: #c9b48c;
-            --text-color: #5b4636; /* Sepia text for sepia background */
+            --text-color: #5b4636;
+            --border-color: #e0d4bc;
+            --input-bg-color: #f2eadc;
+            --input-text-color: #5b4636;
         }
         
         /* Font classes */
@@ -42,11 +56,12 @@
         .font-serif { font-family: 'Playfair Display', serif; }
         .font-mono { font-family: 'Fira Code', monospace; }
 
-        /* General UI improvements for the light theme */
-        .light .bg-white { background-color: #ffffff; }
-        .light .border-gray-300 { border-color: #e5e7eb; }
-        .light #text-input, .light select { background-color: #ffffff; color: #333333; }
-        
+        /* General UI improvements using CSS variables */
+        .bg-card { background-color: var(--input-bg-color); }
+        .border-theme { border-color: var(--border-color); }
+        .text-theme { color: var(--text-color); }
+        #text-input, select, .p-8 { background-color: var(--input-bg-color); color: var(--input-text-color); border-color: var(--border-color); }
+
         /* Reading area specific styles */
         #reading-area {
             position: relative;
@@ -78,34 +93,23 @@
             text-decoration-color: var(--highlight-color);
         }
 
-        /* Single word mode now centered by flexbox */
-        .single-word-mode {
-            text-align: center;
-            font-weight: bold;
-            font-size: 3rem;
+        /* Single word mode styles */
+        #reading-area.single-word-mode {
             display: flex;
             justify-content: center;
             align-items: center;
+            text-align: center;
+            font-weight: bold;
+            font-size: 3rem;
+            height: 10rem;
             white-space: nowrap;
             overflow: hidden;
-            height: 10rem;
         }
 
-        /* CORRECCIÓN: Ahora el texto en modo de una palabra a la vez usa el color de resaltado en lugar del color de fondo. */
-        .single-word-mode .highlighted {
-            color: var(--highlight-color); /* Aplica el color de resalte al texto */
-            padding: 0;
-            background-color: transparent;
+        .single-word-display {
+            font-weight: 800;
         }
         
-        /* New styles for ORP centering and gaze marker */
-        .single-word-orp-container {
-            display: inline-block;
-            white-space: pre;
-            transform-origin: center center;
-            transition: transform 0.1s ease-out;
-        }
-
         .gaze-marker {
             position: absolute;
             top: 0;
@@ -130,7 +134,7 @@
             font-size: 1rem; /* Increased base font size */
         }
 
-        .bg-white {
+        .bg-card {
             height: auto;
             max-width: 100%;
             overflow-y: auto;
@@ -181,14 +185,14 @@
         }
     </style>
 </head>
-<body class="light flex flex-col items-center justify-center min-h-screen p-4">
+<body class="light flex flex-col items-center justify-center min-h-screen p-4" style="background-color: var(--bg-color);">
 
     <!-- Status Message Box -->
     <div id="status-message-box" class="bg-blue-500 text-white font-semibold"></div>
 
-    <div class="bg-white rounded-2xl shadow-xl p-4 md:p-8 max-w-4xl w-full">
+    <div class="bg-card rounded-2xl shadow-xl p-4 md:p-8 max-w-4xl w-full border border-theme">
         <div class="flex flex-col md:flex-row items-center justify-between mb-4">
-            <h1 class="text-xl md:text-3xl font-bold mb-2 md:mb-0">Lector Rápido</h1>
+            <h1 class="text-xl md:text-3xl font-bold mb-2 md:mb-0">Lectura Rápida</h1>
             <div class="flex items-center gap-2 md:gap-4">
                 <button id="save-button" class="bg-blue-500 text-white font-semibold py-2 px-3 rounded-xl hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 shadow-md text-xs md:text-sm">
                     Guardar Sesión
@@ -209,7 +213,7 @@
             
             <!-- Text Input and File Upload -->
             <div id="text-input-section" class="flex flex-col md:flex-row w-full gap-2 mb-2">
-                <textarea id="text-input" class="flex-1 h-20 md:h-28 p-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 dark:bg-gray-700 dark:border-gray-600 sepia:bg-[#f2eadc] sepia:border-[#e0d4bc]" placeholder="Pega aquí el texto o haz clic en 'Cargar Archivo' para un .txt o .pdf."></textarea>
+                <textarea id="text-input" class="flex-1 h-20 md:h-28 p-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200" placeholder="Pega aquí el texto o haz clic en 'Cargar Archivo' para un .txt o .pdf."></textarea>
                 <div class="flex flex-col gap-2 w-full md:w-auto">
                     <label id="file-input-label-text" for="file-input-text" class="bg-indigo-500 text-white font-semibold py-2 px-3 rounded-xl hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200 shadow-md cursor-pointer text-center whitespace-nowrap text-xs md:text-sm">
                         Cargar Archivo
@@ -230,7 +234,7 @@
             </div>
             
             <!-- Critical Reading Prompts Section -->
-            <div id="critical-reading-questions-container" class="w-full mb-2 p-3 rounded-xl border border-gray-300 dark:border-gray-600" style="display: none;">
+            <div id="critical-reading-questions-container" class="w-full mb-2 p-3 rounded-xl border border-theme" style="display: none;">
                 <h3 class="font-bold text-sm md:text-lg mb-1">Preguntas de Comprensión</h3>
                 <div id="critical-reading-questions" class="text-xs md:text-sm space-y-1">
                     <!-- Preguntas generadas por IA se insertarán aquí -->
@@ -248,7 +252,7 @@
 
             <!-- Reading Display Area -->
             <div id="reading-display-container" class="relative w-full mb-2">
-                <div id="reading-area" class="w-full h-24 md:h-40 p-2 md:p-4 border border-gray-300 rounded-xl overflow-y-auto focus:outline-none dark:bg-gray-700 dark:border-gray-600 sepia:bg-[#f2eadc] sepia:border-[#e0d4bc]">
+                <div id="reading-area" class="bg-card w-full h-24 md:h-40 p-2 md:p-4 border rounded-xl overflow-y-auto focus:outline-none border-theme">
                     <span id="reading-intro" class="text-center italic text-gray-600">El texto de tu lectura aparecerá aquí.</span>
                 </div>
             </div>
@@ -299,7 +303,7 @@
                 <!-- Theme Select -->
                 <div class="flex items-center gap-1 w-full md:w-1/3">
                     <label for="theme-select" class="text-xs font-medium whitespace-nowrap">Tema:</label>
-                    <select id="theme-select" class="w-full p-1 rounded-lg border border-gray-300 dark:bg-gray-700 dark:border-gray-600 sepia:bg-[#f2eadc] sepia:border-[#e0d4bc] text-xs">
+                    <select id="theme-select" class="w-full p-1 rounded-lg border text-xs">
                         <option value="light">Claro</option>
                         <option value="dark">Oscuro</option>
                         <option value="sepia">Sepia</option>
@@ -309,7 +313,7 @@
                 <!-- Font Select -->
                 <div class="flex items-center gap-1 w-full md:w-1/3">
                     <label for="font-select" class="text-xs font-medium whitespace-nowrap">Fuente:</label>
-                    <select id="font-select" class="w-full p-1 rounded-lg border border-gray-300 dark:bg-gray-700 dark:border-gray-600 sepia:bg-[#f2eadc] sepia:border-[#e0d4bc] text-xs">
+                    <select id="font-select" class="w-full p-1 rounded-lg border text-xs">
                         <option value="inter">Inter</option>
                         <option value="serif">Serif</option>
                         <option value="mono">Mono</option>
@@ -329,7 +333,7 @@
                 <!-- Mode Select -->
                 <div class="flex items-center gap-1 w-full md:w-1/2">
                     <label for="mode-select" class="text-xs font-medium whitespace-nowrap">Modo:</label>
-                    <select id="mode-select" class="w-full p-1 rounded-lg border border-gray-300 dark:bg-gray-700 dark:border-gray-600 sepia:bg-[#f2eadc] sepia:border-[#e0d4bc] text-xs">
+                    <select id="mode-select" class="w-full p-1 rounded-lg border text-xs">
                         <option value="highlight">Resaltado</option>
                         <option value="single-word">Una palabra a la vez</option>
                     </select>
@@ -341,7 +345,7 @@
                 <!-- Highlight Style Select -->
                 <div class="flex items-center gap-1 w-full md:w-1/2">
                     <label for="highlight-style-select" class="text-xs font-medium whitespace-nowrap">Estilo:</label>
-                    <select id="highlight-style-select" class="w-full p-1 rounded-lg border border-gray-300 dark:bg-gray-700 dark:border-gray-600 sepia:bg-[#f2eadc] sepia:border-[#e0d4bc] text-xs">
+                    <select id="highlight-style-select" class="w-full p-1 rounded-lg border text-xs">
                         <option value="highlight-background">Fondo</option>
                         <option value="highlight-underline">Subrayado</option>
                         <option value="highlight-bold-orp">Negrita (ORP)</option>
@@ -362,10 +366,17 @@
                 <label for="gaze-marker-checkbox" class="text-xs font-medium">Usar Marcador de Gaze</label>
             </div>
             
-            <!-- Highlight Color Picker -->
-            <div class="w-full flex items-center justify-center gap-1 mt-2">
-                <label for="highlight-color-picker" class="text-xs font-medium whitespace-nowrap">Color Resalte:</label>
-                <input type="color" id="highlight-color-picker" value="#fde68a" class="w-12 h-8 rounded-lg border border-gray-300 cursor-pointer">
+            <!-- Highlight and Font Color Pickers -->
+            <div class="w-full flex flex-col md:flex-row items-center justify-center gap-4 mt-2">
+                <div class="flex items-center gap-1">
+                    <label for="highlight-color-picker" class="text-xs font-medium whitespace-nowrap">Color Resalte:</label>
+                    <input type="color" id="highlight-color-picker" value="#fde68a" class="w-12 h-8 rounded-lg border border-gray-300 cursor-pointer">
+                </div>
+                <!-- NEW: Font Color Picker -->
+                <div class="flex items-center gap-1">
+                    <label for="font-color-picker" class="text-xs font-medium whitespace-nowrap">Color Fuente:</label>
+                    <input type="color" id="font-color-picker" value="#1f2937" class="w-12 h-8 rounded-lg border border-gray-300 cursor-pointer">
+                </div>
             </div>
 
             <div class="mt-4 text-xs text-center text-gray-500">
@@ -376,7 +387,7 @@
     </div>
 
     <script>
-        // Set up PDF.js worker
+        // Se usa un enlace absoluto para el worker de PDF.js para evitar errores de carga en GitHub Pages
         pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js`;
 
         // ========================
@@ -424,6 +435,9 @@
 
         // New DOM reference for clear button
         const clearButton = document.getElementById('clear-button');
+
+        // NEW: DOM reference for font color picker
+        const fontColorPicker = document.getElementById('font-color-picker');
 
         // ========================
         // State Variables
@@ -499,6 +513,7 @@
                     mode: modeSelect.value,
                     highlightStyle: highlightStyleSelect.value,
                     highlightColor: highlightColorPicker.value,
+                    fontColor: fontColorPicker.value,
                     wordsPerChunk: wordsPerChunkSlider.value,
                     timestamp: new Date().toISOString()
                 };
@@ -526,6 +541,10 @@
                     modeSelect.value = data.mode || 'highlight';
                     highlightStyleSelect.value = data.highlightStyle || 'highlight-background';
                     highlightColorPicker.value = data.highlightColor || '#fde68a';
+                    // Load and apply font color
+                    fontColorPicker.value = data.fontColor || '#1f2937';
+                    readingArea.style.color = fontColorPicker.value;
+
                     wordsPerChunkSlider.value = data.wordsPerChunk || '1';
                     wpmSlider.value = data.wpm || '300';
                     wpmValueSpan.textContent = wpmSlider.value;
@@ -726,7 +745,8 @@
 
             // Clear previous styles and content
             readingArea.innerHTML = '';
-            readingArea.className = 'w-full h-24 md:h-40 p-2 md:p-4 border border-gray-300 rounded-xl overflow-y-auto focus:outline-none dark:bg-gray-700 dark:border-gray-600 sepia:bg-[#f2eadc] sepia:border-[#e0d4bc]';
+            // Se limpian las clases de modo
+            readingArea.classList.remove('highlight-background', 'highlight-underline', 'highlight-bold-orp', 'single-word-mode');
             
             if (words.length > 0) {
                 if (mode === 'highlight') {
@@ -738,6 +758,10 @@
                         const span = document.createElement('span');
                         span.className = 'word cursor-pointer';
                         span.dataset.index = index;
+                        // Comentario: ORP (Optimal Recognition Point) es el punto óptimo donde el ojo se fija en una palabra.
+                        // El estilo `highlight-bold-orp` resalta este punto con negrita y un subrayado.
+                        // El color del subrayado es el color de resalte, mientras que el color de la fuente
+                        // es el color del tema seleccionado.
                         if (highlightStyle === 'highlight-bold-orp') {
                             span.innerHTML = getOrpWord(word) + ' ';
                         } else {
@@ -750,11 +774,6 @@
                     readingArea.style.whiteSpace = 'nowrap';
                     
                     readingArea.classList.add('single-word-mode');
-                    const span = document.createElement('span');
-                    span.id = 'current-word-span';
-                    // Agrega la clase de resaltado para que el CSS aplique el color correcto
-                    span.classList.add('highlighted'); 
-                    readingArea.appendChild(span);
                 }
                 readingArea.classList.remove('italic');
                 readingArea.style.textAlign = mode === 'single-word' ? 'center' : 'left';
@@ -776,7 +795,7 @@
             
             // Show/hide gaze marker based on checkbox state
             let gazeMarker = document.getElementById('gaze-marker');
-            if (gazeMarkerCheckbox.checked) {
+            if (gazeMarkerCheckbox.checked && mode === 'highlight') {
                  if (!gazeMarker) {
                     gazeMarker = document.createElement('div');
                     gazeMarker.id = 'gaze-marker';
@@ -812,14 +831,16 @@
                     readingArea.scrollTop = scrollPos;
                 }
             } else if (mode === 'single-word') {
-                 const currentWordSpan = document.getElementById('current-word-span');
-                 if (!currentWordSpan) return;
-
+                 readingArea.innerHTML = '';
+                 
                  const currentWord = words[index];
-                 const orpWord = getOrpWord(currentWord);
+                 if (!currentWord) return;
 
-                 currentWordSpan.innerHTML = orpWord;
-                 // Centering is handled by the flexbox properties in the CSS class `.single-word-mode`
+                 const wordSpan = document.createElement('span');
+                 wordSpan.className = 'single-word-display';
+                 wordSpan.textContent = currentWord;
+                 
+                 readingArea.appendChild(wordSpan);
             }
             updateProgressBar();
             updateWordCounter();
@@ -828,6 +849,8 @@
 
         // Renders the next word/chunk in the reading session
         const displayNextWord = () => {
+            if (!isReading) return;
+            
             if (currentIndex < words.length) {
                 const wordsPerChunk = parseInt(wordsPerChunkSlider.value, 10);
                 
@@ -835,6 +858,14 @@
                 
                 const lastWordOfChunk = words[Math.min(currentIndex + wordsPerChunk - 1, words.length - 1)];
                 const lastChar = lastWordOfChunk ? lastWordOfChunk.slice(-1) : '';
+                const punctuationPauseMultiplier = {
+                    ',': 0.5,
+                    ';': 0.7,
+                    ':': 0.7,
+                    '.': 1.0,
+                    '?': 1.0,
+                    '!': 1.0
+                };
                 const pauseMultiplier = punctuationPauseMultiplier[lastChar] || 0;
                 const baseInterval = 60000 / wpmSlider.value;
                 const nextInterval = baseInterval * wordsPerChunk + (baseInterval * pauseMultiplier);
@@ -880,37 +911,33 @@
         
         // Starts the reading session
         const startReading = () => {
-            if (isReading && !isPaused) {
-                return;
-            }
-            
-            let textToRead = textInput.value.trim();
+            // New, more robust logic to prevent word skipping
+            const textToRead = textInput.value.trim();
             if (textToRead === "") {
                 showStatusMessage("Por favor, pega un texto, carga un archivo o una imagen.", true);
                 return;
             }
 
-            // Check if the text has changed
+            // Re-initialize if the text has changed
             const newWords = textToRead.split(/\s+/).filter(word => word.length > 0);
             if (newWords.join(' ') !== words.join(' ')) {
-                // If text has changed, re-initialize everything but don't reset currentIndex
-                if (timer) clearTimeout(timer);
-                isPaused = false;
-                isReading = true;
-                startTime = Date.now();
+                words = newWords;
+                currentIndex = 0;
                 updateReadingDisplay(textToRead);
-                currentIndex = 0; // Reset index for new text
-                displayNextWord();
-                return;
             }
 
-            // If text is the same, just start from the current index
+            if (isReading && !isPaused) {
+                return; // Already reading and not paused, do nothing
+            }
+
+            // Start or resume the session
             isReading = true;
             isPaused = false;
-            // Only set start time if it was previously 0
             if (startTime === 0) {
                  startTime = Date.now();
             }
+            
+            // The displayNextWord function now handles the timer and the word advancement
             displayNextWord();
         };
 
@@ -1033,22 +1060,63 @@
         
         // Select boxes
         themeSelect.addEventListener('change', (e) => {
+            // Apply theme CSS variables to the document
             document.body.classList.remove('light', 'dark', 'sepia');
             document.body.classList.add(e.target.value);
+            
             // Re-apply the font and font-size, as switching themes might reset them
             readingArea.style.fontSize = `${fontSizeSlider.value}px`;
             document.body.classList.remove('font-inter', 'font-serif', 'font-mono');
             document.body.classList.add(`font-${fontSelect.value}`);
+            
+            // NEW: Update reading area font color based on mode and new theme
+            if (modeSelect.value === 'single-word') {
+                if (e.target.value === 'sepia') {
+                    readingArea.style.color = '#1f2937'; // Negro para tema sepia
+                    fontColorPicker.value = '#1f2937';
+                } else {
+                    readingArea.style.color = '#ef4444'; // Rojo para temas claro y oscuro
+                    fontColorPicker.value = '#ef4444';
+                }
+            } else {
+                // If not in single-word mode, reset to the user's selected color
+                 readingArea.style.color = fontColorPicker.value;
+            }
         });
+
         fontSelect.addEventListener('change', (e) => {
             document.body.classList.remove('font-inter', 'font-serif', 'font-mono');
             document.body.classList.add(`font-${e.target.value}`);
         });
 
+        // ========================
+        // Fix: The mode change now correctly handles the font color for the reading area only.
+        // ========================
         modeSelect.addEventListener('change', (e) => {
             const isHighlightMode = e.target.value === 'highlight';
             highlightControls.style.display = isHighlightMode ? 'flex' : 'none';
+            
+            if (e.target.value === 'single-word') {
+                 // NEW: Set color based on the current theme
+                if (themeSelect.value === 'sepia') {
+                    fontColorPicker.value = '#1f2937';
+                    readingArea.style.color = '#1f2937';
+                } else {
+                    fontColorPicker.value = '#ef4444';
+                    readingArea.style.color = '#ef4444';
+                }
+            } else {
+                // If switching back to highlight, reset to the user's selected color
+                readingArea.style.color = fontColorPicker.value;
+            }
+
+            // Trigger a full re-render to apply the correct classes and content structure
             updateReadingDisplay(textInput.value);
+            // Ensure the reading area's background and border colors are updated with the current theme
+            readingArea.classList.remove('bg-card');
+            readingArea.classList.add('bg-card');
+            readingArea.classList.remove('border-theme');
+            readingArea.classList.add('border-theme');
         });
 
         highlightStyleSelect.addEventListener('change', () => {
@@ -1058,6 +1126,12 @@
         // Highlight color picker
         highlightColorPicker.addEventListener('input', (e) => {
             document.documentElement.style.setProperty('--highlight-color', e.target.value);
+        });
+        
+        // Font color picker listener
+        fontColorPicker.addEventListener('input', (e) => {
+            // Apply the user's color to the reading area
+            readingArea.style.color = e.target.value;
         });
 
         // New: Click event listener for the reading area
@@ -1102,4 +1176,3 @@
     </script>
 </body>
 </html>
-
